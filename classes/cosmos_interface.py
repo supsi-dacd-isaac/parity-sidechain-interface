@@ -1,3 +1,5 @@
+import http
+
 import requests
 import os
 import json
@@ -5,9 +7,9 @@ import json
 
 class CosmosInterface:
     """
-    CosmosInterface class
+    CosmosInterface class for Cosmos SDK 0.39x
     """
-    def __init__(self, app, cfg, logger):
+    def __init__(self, cfg, logger):
         """
         Constructor
         :param cfg: configuration dictionary
@@ -16,121 +18,121 @@ class CosmosInterface:
         :type Logger
         """
         # define the main global variables
-        self.app = app
         self.cfg = cfg
         self.logger = logger
-        self.full_path_app = '%s/bin/%scli' % (self.cfg['cosmos']['goRoot'], self.app)
-        self.base_url = '%s://%s:%i' % (self.cfg['cosmos']['protocol'], self.cfg['cosmos']['host'],
-                                        self.cfg['cosmos']['port'])
+        self.full_path_app = '%s%sbin%s%sd' % (self.cfg['cosmos']['goRoot'], os.sep, os.sep, self.cfg['cosmos']['app'])
         self.account = self.get_account_info()
-        self.account_number, self.sequence_number = self.get_account_sequence_numbers()
 
     def get_account_info(self):
-        res = os.popen('%s keys list' % self.full_path_app).read()
+        res = os.popen('%s keys list --output json' % self.full_path_app).read()
         accounts = json.loads(res)
         return accounts[0]
 
-    def get_account_sequence_numbers(self):
-        url = '%s/auth/accounts/%s' % (self.base_url, self.account['address'])
-        r = requests.get(url)
-        data = json.loads(r.text)
+    def check_tx(self, tx_hash):
+        if tx_hash is None or len(tx_hash) != 64:
+            return http.HTTPStatus.NOT_FOUND, -1
+        else:
+            cmd = '%s query tx %s' % (self.full_path_app, tx_hash)
 
-        return int(data['result']['value']['account_number']), int(data['result']['value']['sequence'])
+            try:
+                res = os.popen(cmd).read()
+                code = int(res.split('\n')[0].replace(' ', '').split(':')[1])
+                return http.HTTPStatus.OK, code
+            except Exception as e:
+                self.logger.error('EXCEPTION: %s' % str(e))
+                return http.HTTPStatus.INTERNAL_SERVER_ERROR, -1
 
-    def do_query(self, cmd, params):
-        url = '%s/%s/%s?' % (self.base_url, self.app, cmd)
-        for k in params.keys():
-            url = '%s%s=%s&' % (url, k, params[k])
-        self.logger.info('GET -> %s' % url)
-        r = requests.get(url)
-        return r.status_code, r.text
+    def do_query(self, end_point):
+        url = '%s://%s:%i/%s%s' % (self.cfg['cosmos']['protocol'], self.cfg['cosmos']['host'],
+                                   self.cfg['cosmos']['port'], self.cfg['cosmos']['requestEndpointHeader'], end_point)
+        res = requests.get(url)
+        return res.status_code, res.text
 
     def do_transaction(self, cmd, params):
-        # Create a transaction without signature
-        self.do_unsigned_transaction(cmd, params, 'unsignedTx.json')
+        # Create the command header
+        cmd_str = '%s tx %s' % (self.full_path_app, self.cfg['cosmos']['app'])
 
-        # If setMeasure and signal = PImp|PExp then send two messages in the same transaction,
-        # the former for the power data, the latter for the energy
-        if cmd == 'setMeasure' and params['signal'] == 'PImp':
-            self.add_msg_to_transactions(cmd, params, 'E_cons', 'unsignedTx.json')
-        elif cmd == 'setMeasure' and params['signal'] == 'PExp':
-            self.add_msg_to_transactions(cmd, params, 'E_prod', 'unsignedTx.json')
+        # Customize the command if available
+        real_cmd = self.customize_cmd(cmd, params)
 
-        # Sign the transaction
-        self.do_transaction_signature('unsignedTx.json')
+        if real_cmd is not None:
+            cmd_str = '%s %s' % (cmd_str, real_cmd)
 
-        # Broadcast the transaction
-        self.broadcast_transaction()
+            # Add name of the local account performing the transaction
+            cmd_str = '%s --from %s -y' % (cmd_str, self.account['name'])
 
-        # Delete tmp files
-        self.delete_transactions_temporary_files()
+            # Perform the transaction
+            self.logger.info('Transaction command: %s' % cmd_str)
+            try:
+                res = os.popen(cmd_str).read()
+                tx = res.split('\n')[-2].split(': ')[1]
 
-    def add_msg_to_transactions(self, cmd, params, new_signal, output_file):
-        energy_output_file = 'unsignedTxE.json'
-        params['signal'] = new_signal
-        # 15 minutes time-resolution => E = P/4
-        params['value'] = '%i' % int(float(params['value'])/4)
+                # check the transaction length
+                if len(tx) == 64:
+                    return http.HTTPStatus.OK, tx, 'Transaction performing successful'
+                else:
+                    return http.HTTPStatus.INTERNAL_SERVER_ERROR, tx, 'txHash length != 64'
+            except Exception as e:
+                self.logger.error('EXCEPTION: %s' % str(e))
+                return http.HTTPStatus.INTERNAL_SERVER_ERROR, None, 'Transaction performing not successful'
+        else:
+            return http.HTTPStatus.NOT_FOUND, None, 'Command %s not available' % cmd
 
-        # Save data related to energy
-        self.do_unsigned_transaction(cmd, params, energy_output_file)
+    @staticmethod
+    def customize_cmd(endpoint, params):
+        if endpoint == '/createDso':
+            return 'create-dso %s %s' % (params['idx'], params['address'])
 
-        with open('%s/%s' % (self.cfg["cosmos"]["folderSignatureFiles"], output_file)) as json_file:
-            data = json.load(json_file)
+        elif endpoint == '/updateDso':
+            return 'update-dso %s %s' % (params['idx'], params['address'])
 
-        with open('%s/%s' % (self.cfg["cosmos"]["folderSignatureFiles"], energy_output_file)) as json_file:
-            data_energy = json.load(json_file)
+        elif endpoint == '/createAggregator':
+            return 'create-aggregator %s %s' % (params['idx'], params['address'])
 
-        # Append the energy data to the message array
-        data['value']['msg'].append(data_energy['value']['msg'][0])
+        elif endpoint == '/updateAggregator':
+            return 'update-aggregator %s %s' % (params['idx'], params['address'])
 
-        self.logger.info('Add the consumed/produced energy data to the unsigned transaction')
-        with open('%s/%s' % (self.cfg["cosmos"]["folderSignatureFiles"], output_file), 'w') as fw:
-            json.dump(data, fw)
+        elif endpoint == '/createPlayer':
+            return 'create-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
 
-    def do_unsigned_transaction(self, cmd, payload, output_file):
-        endpoint = '%s/%s/%s' % (self.base_url, self.app, cmd)
+        elif endpoint == '/updatePlayer':
+            return 'update-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
 
-        payload['base_req'] = {"from": self.account['address'], "chain_id": self.cfg['cosmos']['chainName']}
-        headers = {"content-type": "application/json; charset=UTF-8"}
+        elif endpoint == '/createLem':
+            result = 'create-lem %s-%s-%s %s %s %s' % (params['start'], params['end'], params['aggregator'],
+                                                       params['start'], params['end'], params['case'])
+            for mp in params['marketParameters']:
+                result = '%s %s' % (result, mp)
 
-        # Perform the POST request
-        self.logger.info('POST -> %s {%s}' % (endpoint, payload))
-        r = requests.post(endpoint, headers=headers, json=payload)
+            for p in params['players']:
+                result = '%s %s' % (result, p)
+            return result
 
-        # Update the sequence number
-        _, self.sequence_number = self.get_account_sequence_numbers()
+        elif endpoint == '/createLemMeasure':
+            return 'create-lem-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['signal'],
+                                                                   params['timestamp'], params['player'],
+                                                                   params['signal'], params['timestamp'],
+                                                                   str(params['value']), params['measureUnit'])
 
-        transaction_dict = json.loads(r.text)
+        elif endpoint == '/createSla':
+            return 'create-sla %s %s %s' % (params['idx'], params['start'], params['end'])
 
-        self.logger.info('Create the unsigned transaction')
-        with open('%s/%s' % (self.cfg["cosmos"]["folderSignatureFiles"], output_file), 'w') as fw:
-            json.dump(transaction_dict, fw)
+        elif endpoint == '/updateSla':
+            return 'update-sla %s %s %s' % (params['idx'], params['start'], params['end'])
 
-    def do_transaction_signature(self, unsigned_file):
-        # Sign the transaction
-        self.logger.info('Create the signed transaction')
-        cmd_signature = '%s tx sign %s/%s --from %s --offline --chain-id %s ' \
-                        '--sequence %i --account-number %i' % (self.full_path_app,
-                                                               self.cfg['cosmos']['folderSignatureFiles'],
-                                                               unsigned_file,
-                                                               self.account['name'],
-                                                               self.cfg['cosmos']['chainName'],
-                                                               self.sequence_number,
-                                                               self.account_number)
-        res = os.popen(cmd_signature).read()
+        elif endpoint == '/createKpi':
+            return 'create-kpi %s %s %s %s %s %s' % (params['idx'], params['idxSla'], params['rule'],
+                                                     str(params['limit']), params['measureUnit'], params['penalty'])
 
-        res_dict = json.loads(res)
-        with open('%s/signedTx.json' % self.cfg["cosmos"]["folderSignatureFiles"], 'w') as fw:
-            json.dump(res_dict, fw)
+        elif endpoint == '/updateKpi':
+            return 'update-kpi %s %s %s %s %s %s' % (params['idx'], params['idxSla'], params['rule'],
+                                                     str(params['limit']), params['measureUnit'], params['penalty'])
 
-    def broadcast_transaction(self):
-        self.logger.info('Send the transaction as broadcast on the sidechain')
-        cmd_broadcast = '%s tx broadcast %s/signedTx.json' % (self.full_path_app,
-                                                              self.cfg["cosmos"]["folderSignatureFiles"])
-        os.popen(cmd_broadcast).read()
+        elif endpoint == '/createKpiMeasure':
+            return 'create-kpi-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['kpi'],
+                                                                   params['timestamp'], params['player'],
+                                                                   params['kpi'], params['timestamp'],
+                                                                   str(params['value']), params['measureUnit'])
 
-    def delete_transactions_temporary_files(self):
-        if os.path.exists('%s/unsignedTxE.json' % self.cfg["cosmos"]["folderSignatureFiles"]):
-            os.unlink('%s/unsignedTxE.json' % self.cfg["cosmos"]["folderSignatureFiles"])
-        os.unlink('%s/unsignedTx.json' % self.cfg["cosmos"]["folderSignatureFiles"])
-        os.unlink('%s/signedTx.json' % self.cfg["cosmos"]["folderSignatureFiles"])
+        else:
+            return None

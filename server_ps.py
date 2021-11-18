@@ -13,7 +13,7 @@ from urllib import parse
 from http import HTTPStatus
 from tendo.singleton import SingleInstance
 
-from classes.cosmos_interface import CosmosInterface
+from classes.cosmos_interface_v039 import CosmosInterfaceV039
 
 # --------------------------------------------------------------------------- #
 # Functions
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
-    ci = CosmosInterface(app=cfg['cosmos']['app'], cfg=cfg, logger=logger)
+    ci = CosmosInterfaceV039(app=cfg['cosmos']['app'], cfg=cfg, logger=logger)
 
     # REST server thread
     HandlerClass = handler_class(ci, cfg, logger)
