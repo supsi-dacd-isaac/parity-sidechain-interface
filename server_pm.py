@@ -1,5 +1,6 @@
 
 # Importing section
+import http
 import json
 import sys
 import argparse
@@ -42,6 +43,9 @@ def handler_class(ci_obj, cfg_obj, logger_obj):
             if 'checkTx' in self.path:
                 req_status, req_data = self.ci.check_tx(self.path.split('/')[-1])
                 req_data = json.dumps({'code': req_data})
+            elif 'account' in self.path:
+                req_status = http.HTTPStatus.OK
+                req_data = json.dumps(self.ci.account)
             else:
                 req_status, req_data = self.ci.do_query(self.path)
 

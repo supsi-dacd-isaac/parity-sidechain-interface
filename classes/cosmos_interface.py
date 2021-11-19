@@ -69,7 +69,7 @@ class CosmosInterface:
 
                 # check the transaction length
                 if len(tx) == 64:
-                    return http.HTTPStatus.OK, tx, 'Transaction performing successful'
+                    return http.HTTPStatus.OK, tx, ''
                 else:
                     return http.HTTPStatus.INTERNAL_SERVER_ERROR, tx, 'txHash length != 64'
             except Exception as e:
