@@ -35,9 +35,10 @@ if __name__ == "__main__":
     r = requests.get('%s/account' % url_prefix, headers=headers)
     data = json.loads(r.text)
 
-    set_cmd = ''
+    now = datetime.datetime.now()
+    dt = now.replace(second=0)
     params = {
-                'timestamp': int(datetime.datetime.now().timestamp()),
+                'timestamp': int(dt.timestamp()),
                 'signal': 'P',
                 'player': data['name'],
                 'value': round(random.uniform(0, 30000)/10, 1),
