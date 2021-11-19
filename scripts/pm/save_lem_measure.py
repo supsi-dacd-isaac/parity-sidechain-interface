@@ -10,10 +10,11 @@ import time
 #  Main
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
-    args = arg_parser.parse_args()
     arg_parser.add_argument('-l', help='log file')
 
     args = arg_parser.parse_args()
+
+    # set logging object
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     if not args.l:
@@ -24,6 +25,7 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logging.basicConfig(format='%(asctime)-15s::%(threadName)s::%(levelname)s::%(funcName)s::%(message)s',
                         level=logging.INFO, filename=log_file)
+
 
     url_prefix = 'http://localhost:9119'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
