@@ -57,8 +57,8 @@ def handler_class(ci_obj, cfg_obj, logger_obj):
         Catch a POST request
         """
         def do_POST(self):
-
             data_string = self.rfile.read(int(self.headers['Content-Length']))
+            data_string = data_string.decode('UTF-8')
 
             req_status, tx_hash, msg = ci.do_transaction(self.path, json.loads(data_string))
 
