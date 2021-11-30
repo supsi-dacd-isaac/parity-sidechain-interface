@@ -130,8 +130,8 @@ class CosmosInterface:
 
         elif endpoint == '/createKpiMeasure':
             return 'create-kpi-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['kpi'],
-                                                                   params['timestamp'], params['player'],
-                                                                   params['kpi'], params['timestamp'],
+                                                                   params['timestamp'], params['kpi'],
+                                                                   params['player'], params['timestamp'],
                                                                    str(params['value']), params['measureUnit'])
 
         else:
