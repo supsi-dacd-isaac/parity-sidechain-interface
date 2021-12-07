@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
     end_dt_utc = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
-    end_dt_utc = influxdb_interface.get_dt('now', flag_set_minute=False)
 
     r = requests.get('%s/account' % url_prefix, headers=headers)
     player_data = json.loads(r.text)
