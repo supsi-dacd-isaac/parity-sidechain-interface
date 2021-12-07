@@ -66,7 +66,7 @@ if __name__ == "__main__":
         tx_hashes[signal] = data['tx_hash']
 
         # Wait some seconds to be sure that the transaction has been handled
-        time.sleep(5)
+        time.sleep(8)
 
     for signal in cfg['signals']:
         check_tx_url = '%s/checkTx/%s' % (url_prefix, tx_hashes[signal])
