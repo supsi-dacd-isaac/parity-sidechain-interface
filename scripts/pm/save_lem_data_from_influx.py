@@ -43,12 +43,14 @@ if __name__ == "__main__":
     r = requests.get('%s/account' % url_prefix, headers=headers)
     player_data = json.loads(r.text)
 
+    # Define the timestamp that will be the same for all the signals
+    now = datetime.datetime.now()
+    dt = now.replace(second=0)
+
     tx_hashes = dict()
     for signal in cfg['signals']:
         value = influxdb_interface.get_dataset(signal, end_dt_utc)
 
-        now = datetime.datetime.now()
-        dt = now.replace(second=0)
         params = {
                     'timestamp': int(dt.timestamp()),
                     'signal': signal,
@@ -64,8 +66,9 @@ if __name__ == "__main__":
         logger.info('Response: %s' % data)
         tx_hashes[signal] = data['tx_hash']
 
-        # Wait some seconds to be sure that the transaction has been handled
-        time.sleep(8)
+        if len(cfg['signals']) > 1:
+            # Wait some seconds to be sure that the transaction has been handled
+            time.sleep(cfg['utils']['sleepBetweenTransactions'])
 
     for signal in cfg['signals']:
         check_tx_url = '%s/checkTx/%s' % (url_prefix, tx_hashes[signal])
