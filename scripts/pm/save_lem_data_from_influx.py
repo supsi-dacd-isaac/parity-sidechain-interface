@@ -47,34 +47,32 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
     dt = now.replace(second=0)
 
-    tx_hashes = dict()
-    for signal in cfg['signals']:
-        value = influxdb_interface.get_dataset(signal, end_dt_utc)
+    power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
+    power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
 
-        params = {
-                    'timestamp': int(dt.timestamp()),
-                    'signal': signal,
-                    'player': player_data['name'],
-                    'value': round(float(value), 1),
-                    'measureUnit': 'W',
-                 }
+    params = {
+                'timestamp': int(dt.timestamp()),
+                'player': player_data['name'],
+                'powerConsumptionMeasure': round(float(power_imp), 1),
+                'powerProductionMeasure': round(float(power_exp), 1),
+                'powerConsumptionForecast': None,
+                'powerProductionForecast': None,
+             }
 
-        cmd_request = '%s/createLemMeasure' % url_prefix
-        logger.info('Request: %s' % cmd_request)
-        r = requests.post(cmd_request, headers=headers, json=params)
-        data = json.loads(r.text)
-        logger.info('Response: %s' % data)
-        tx_hashes[signal] = data['tx_hash']
+    cmd_request = '%s/createLemDataset' % url_prefix
+    logger.info('Request: %s' % cmd_request)
+    r = requests.post(cmd_request, headers=headers, json=params)
+    data = json.loads(r.text)
+    logger.info('Response: %s' % data)
+    data['tx_hash']
 
-        if len(cfg['signals']) > 1:
-            # Wait some seconds to be sure that the transaction has been handled
-            time.sleep(cfg['utils']['sleepBetweenTransactions'])
+    # Wait some seconds to be sure that the transaction has been handled
+    time.sleep(cfg['utils']['sleepBetweenTransactions'])
 
-    for signal in cfg['signals']:
-        check_tx_url = '%s/checkTx/%s' % (url_prefix, tx_hashes[signal])
-        logger.info('Check tx: %s' % check_tx_url)
-        r = requests.get(check_tx_url)
-        data = json.loads(r.text)
-        logger.info('Response: %s' % data)
+    check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
+    logger.info('Check tx: %s' % check_tx_url)
+    r = requests.get(check_tx_url)
+    data = json.loads(r.text)
+    logger.info('Response: %s' % data)
 
     logger.info('Ending program')

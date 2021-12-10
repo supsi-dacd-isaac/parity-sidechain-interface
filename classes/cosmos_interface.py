@@ -113,6 +113,15 @@ class CosmosInterface:
                                                                    params['timestamp'], params['player'],
                                                                    params['signal'], params['timestamp'],
                                                                    str(params['value']), params['measureUnit'])
+        elif endpoint == '/createLemDataset':
+            return 'create-lem-dataset %s-%s %s %s %s %s %s %s' % (params['player'],
+                                                                   params['timestamp'],
+                                                                   params['player'],
+                                                                   params['timestamp'],
+                                                                   str(params['powerConsumptionMeasure']),
+                                                                   str(params['powerProductionMeasure']),
+                                                                   str(params['powerConsumptionForecast']),
+                                                                   str(params['powerProductionForecast']))
 
         elif endpoint == '/createSla':
             return 'create-sla %s %s %s' % (params['idx'], params['start'], params['end'])
