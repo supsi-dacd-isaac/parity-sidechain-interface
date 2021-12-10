@@ -20,7 +20,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_AGG_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
 * **_Player_** map: The list of the prosumers allowed to be included by `AGG` in a LEM (i.e. the prosumers on the same LV trafo)
 * **_lem_** map: Container of the LEMs (Local Energy Markets)
-* **_lemMeasure_** map: Container of the energy/power time series related to the LEMs
+* **_lemDataset_** map: Container of the power time series related to the LEMs
 * **_SLA_** map: Container of the SLA definition
 * **_KPI_** map: Container of the KPI definition, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
@@ -247,47 +247,53 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus"
 }
 </pre>
 
-## **_lemMeasure_** map:
+## **_lemDataset_** map:
 
-`lemMeasure` is edited by the prosumers belonging to `player`map.
+`lemDataset` is edited by the prosumers belonging to `player`map.
 
 ### Creation:
 
 <pre>
-curl -X POST http://localhost:9119/createLemMeasure -H 'Content-Type: application/json' \
-            -d '{"player":"hermione", "signal":"P", "timestamp": 1608984000, "value": 3141.6, "measureUnit": "W"}'
+curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
+             -d '{"player":"hermione", "timestamp": 1608984000, "powerConsumptionMeasure": 2345.7, \ 
+                  "powerProductionMeasure": 1462.3, "powerConsumptionForecast": "None", "powerProductionForecast": "None"}'
 </pre>
 
 Where:
 * `player`: Prosumer saving the data
-* `signal`: Signal identifier
 * `timestamp:` Timestamp related to the measure
-* `value:` Value related to the measure
-* `measureUnit:` Measure unit
+* `powerConsumptionMeasure:` Measure related to the power consumption
+* `powerProductionMeasure:` Measure related to the power production
+* `powerConsumptionForecast:` Forecast related to the power consumption (currently not used by the sidechain)
+* `powerProductionForecast:` Forecast related to the power production (currently not used by the sidechain)
 
 ### Data retrieving of the entire map:
 
 <pre>
-curl -X GET "http://localhost:9119/lemMeasure"
+curl -X GET "http://localhost:9119/lemDataset"
 {
   [
     {
-      "index": "hermione-P-1608984000",
-      "player": "hermione",
-      "signal": "P",
+      "index": "harry-1608984000",
+      "player": "harry",
       "timestamp": 1608984000,
-      "value": "3141.6",
-      "mu": "W",
-      "creator": "cosmos123granger"
+      "pconsMeasure": "3657.3",
+      "pprodMeasure": "0.0",
+      "pconsForecast": "None",
+      "pprodForecast": "None",
+      "creator": "cosmos123potter"
+    }
     },
     {
-      "index": "harry-P-1608984000",
-      "player": "harry",
-      "signal": "P",
+      "index": "hermione-1608984000",
+      "player": "hermione",
       "timestamp": 1608984000,
-      "value": " 2718.3",
-      "mu": "W",
-      "creator": "cosmos123harry"
+      "pconsMeasure": "2345.7",
+      "pprodMeasure": "1462.3",
+      "pconsForecast": "None",
+      "pprodForecast": "None",
+      "creator": "cosmos123granger"
+    }
     }
   ],
   "pagination": {
@@ -300,16 +306,17 @@ curl -X GET "http://localhost:9119/lemMeasure"
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/lemMeasure/hermione-P-1608984000"
+curl -X GET "http://localhost:9119/lemMeasure/hermione-1608984000"
 {
   "lemMeasure": {
-    "index": "hermione-P-1608984000",
-    "player": "hermione",
-    "signal": "P",
-    "timestamp": 1608984000,
-    "value": "3141.6",
-    "mu": "W",
-    "creator": "cosmos123granger"
+      "index": "hermione-1608984000",
+      "player": "hermione",
+      "timestamp": 1608984000,
+      "pconsMeasure": "2345.7",
+      "pprodMeasure": "1462.3",
+      "pconsForecast": "None",
+      "pprodForecast": "None",
+      "creator": "cosmos123granger"
   }
 }
 </pre>
