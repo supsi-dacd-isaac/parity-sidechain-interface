@@ -98,6 +98,10 @@ class CosmosInterface:
         elif endpoint == '/updatePlayer':
             return 'update-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
 
+        elif endpoint == '/createDefaultLemPars':
+            return 'create-default-lem-pars %s %s %s %s %s %s' % (params['lemCase'], params['pbBAU'], params['psBAU'],
+                                                                  params['pbP2P'], params['psP2P'], params['beta'])
+
         elif endpoint == '/createLem':
             result = 'create-lem %s-%s-%s %s %s %s' % (params['start'], params['end'], params['aggregator'],
                                                        params['start'], params['end'], params['case'])
