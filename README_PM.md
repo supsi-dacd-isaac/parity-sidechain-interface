@@ -19,6 +19,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_DSO_**: Single element representing the node responsible for the maintenance of the `player` map.  
 * **_AGG_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
 * **_Player_** map: The list of the prosumers allowed to be included by `AGG` in a LEM (i.e. the prosumers on the same LV trafo)
+* **_defaultLemPars_** map: Container of the default LEM parameters 
 * **_lem_** map: Container of the LEMs (Local Energy Markets)
 * **_lemDataset_** map: Container of the power time series related to the LEMs
 * **_SLA_** map: Container of the SLA definition
@@ -95,44 +96,36 @@ curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/js
 Where:
 * `role`: Role of the player in the LEMs (`dso | aggregator | prosumer`)
 
+## **_defaultLemPars_** map:
+
+`defaultLemPars` map must be edited by `DSO` node.
+
+### Elements creation:
+
+<pre>
+curl -X POST http://localhost:9119/createDefaultLemPars -H 'Content-Type: application/json' -d '{"lemCase":"GREEN", "pbBAU":"20.0", "psBAU":"5.0", "pbP2P":"15.0", "psP2P":"7.0", "beta":"0.2"}'  
+</pre>
+
+
 ### Data retrieving of the entire map:
 
 <pre>
-curl -X GET "http://localhost:9119/player" 
+curl -X GET "http://localhost:9119/defaultLemPars"
 {
-  "player": [
+  "defaultLemPars": [
     {
-      "index": "harry",
-      "idx": "harry",
-      "address": "cosmos123potter",
-      "role": "prosumer",
-      "creator": "cosmos123snape"
-    },
-    {
-      "index": "albus",
-      "idx": "albus",
-      "address": "cosmos123dumbledore",
-      "role": "aggregator",
-      "creator": "cosmos123snape"
-    },
-    {
-      "index": "hermione",
-      "idx": "hermione",
-      "address": "cosmos123granger",
-      "role": "prosumer",
-      "creator": "cosmos123snape"
-    },
-    {
-      "index": "severus",
-      "idx": "severus",
-      "address": "cosmos123snape",
-      "role": "dso",
+      "index": "GREEN",
+      "pbBAU": "20.0",
+      "psBAU": "5.0",
+      "pbP2P": "15.0",
+      "psP2P": "7.0",
+      "beta": "0.2",
       "creator": "cosmos123snape"
     }
   ],
   "pagination": {
     "next_key": null,
-    "total": "4"
+    "total": "1"
   }
 }
 </pre>
@@ -140,14 +133,22 @@ curl -X GET "http://localhost:9119/player"
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/player/hermione" 
+curl -X GET "http://localhost:9119/defaultLemPars/GREEN"
 {
-  "player": {
-    "index": "hermione",
-    "idx": "hermione",
-    "address": "cosmos123granger",
-    "role": "prosumer",
-    "creator": "cosmos123snape"
+  "defaultLemPars": [
+    {
+      "index": "GREEN",
+      "pbBAU": "20.0",
+      "psBAU": "5.0",
+      "pbP2P": "15.0",
+      "psP2P": "7.0",
+      "beta": "0.2",
+      "creator": "cosmos123snape"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "1"
   }
 }
 </pre>
