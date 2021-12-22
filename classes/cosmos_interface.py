@@ -92,6 +92,12 @@ class CosmosInterface:
         elif endpoint == '/updateAggregator':
             return 'update-aggregator %s %s' % (params['idx'], params['address'])
 
+        elif endpoint == '/createMarketOperator':
+            return 'create-market-operator %s %s' % (params['idx'], params['address'])
+
+        elif endpoint == '/updateMarketOperator':
+            return 'update-market-operator %s %s' % (params['idx'], params['address'])
+
         elif endpoint == '/createPlayer':
             return 'create-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
 

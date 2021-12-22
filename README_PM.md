@@ -15,18 +15,19 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 
 ## Elements manageable by PM REST API:
 
-* **_Account_**: Account information (e.g. name and address of the node).
-* **_DSO_**: Single element representing the node responsible for the maintenance of the `player` map.  
-* **_AGG_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
-* **_Player_** map: The list of the prosumers allowed to be included by `AGG` in a LEM (i.e. the prosumers on the same LV trafo)
+* **_account_**: Account information (e.g. name and address of the node).
+* **_dso_**: Single element representing the node responsible for the maintenance of the `player` map.  
+* **_aggregator_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
+* **_marketOperator_**: Single element representing the node responsible for the management of `defaultLemPars` maps.
+* **_player_** map: The list of the prosumers allowed to be included by `AGG` in a LEM (i.e. the prosumers on the same LV trafo)
 * **_defaultLemPars_** map: Container of the default LEM parameters 
 * **_lem_** map: Container of the LEMs (Local Energy Markets)
 * **_lemDataset_** map: Container of the power time series related to the LEMs
-* **_SLA_** map: Container of the SLA definition
-* **_KPI_** map: Container of the KPI definition, each of them is linked to a SLA
+* **_sla_** map: Container of the SLA definition
+* **_kpi_** map: Container of the KPI definition, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
   
-## **_Account_** element:
+## **_account_** element:
 
 <pre>
 curl -X GET "http://localhost:9119/account" 
@@ -61,7 +62,7 @@ curl -X GET "http://localhost:9119/dso"
 
 ### Creation:
 
-`AGG` must be created by `DSO` node.
+`aggregator` must be created by `DSO` node.
 
 <pre>
 curl -X POST http://localhost:9119/createAggregator -H 'Content-Type: application/json' -d '{"idx":"albus", "address":"cosmos123dumbledore"}' 
@@ -82,7 +83,7 @@ curl -X GET "http://localhost:9119/aggregator"
 
 ## **_player_** map:
 
-`Player` map must be edited by `DSO` node.
+`player` map must be edited by `DSO` node.
 
 ### Elements creation (DSO, AGG and prosumers):
 
@@ -95,6 +96,29 @@ curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/js
 
 Where:
 * `role`: Role of the player in the LEMs (`dso | aggregator | prosumer`)
+
+## **_marketOperator_** element:
+
+`marketOperator` must be created by `DSO` node.
+
+### Creation:
+
+<pre>
+curl -X POST http://localhost:9119/createMarketOperator -H 'Content-Type: application/json' -d '{"idx":"rubeus", "address":"cosmos123hagrid"}' 
+</pre>
+
+### Data retrieving:
+
+<pre>
+curl -X GET "http://localhost:9119/marketOperator" 
+{
+  "Dso": {
+    "idx": "rubeus",
+    "address": "cosmos123hagrid",
+    "creator": "cosmos123snape"
+  }
+}
+</pre>
 
 ## **_defaultLemPars_** map:
 
