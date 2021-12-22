@@ -42,10 +42,10 @@ def handler_class(ci_obj, cfg_obj, logger_obj):
         def do_GET(self):
             if 'checkTx' in self.path:
                 req_status, req_data = self.ci.check_tx(self.path.split('/')[-1])
-                req_data = json.dumps({'code': req_data})
+                req_data = json.dumps({'code': req_data}, indent=2)
             elif 'account' in self.path:
                 req_status = http.HTTPStatus.OK
-                req_data = self.ci.account
+                req_data = json.dumps(self.ci.account, indent=2)
             else:
                 req_status, req_data = self.ci.do_query(self.path)
 
