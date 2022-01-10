@@ -16,7 +16,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 ## Elements manageable by PM REST API:
 
 * **_account_**: Account information (e.g. name and address of the node).
-* **_dso_**: Single element representing the node responsible for the maintenance of the `player` map.  
+* **_dso_**: Single element representing the node responsible for the maintenance of `player` and `gridState` maps.  
 * **_aggregator_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
 * **_marketOperator_**: Single element representing the node responsible for the management of `defaultLemPars` maps.
 * **_player_** map: The list of the prosumers allowed to be included by `AGG` in a LEM (i.e. the prosumers on the same LV trafo)
@@ -26,6 +26,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_sla_** map: Container of the SLA definition
 * **_kpi_** map: Container of the KPI definition, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
+* **_gridState_** map: Container of the grid states
   
 ## **_account_** element:
 
@@ -524,3 +525,57 @@ curl -X GET "http://localhost:9119/kpiMeasure/hermione-temp_too_high-1607601600"
 }
 </pre>
 
+## **_gridState_** map:
+
+`kpiMeasure` must be edited by `DSO` node.
+
+### Creation:
+
+<pre>
+curl -X POST http://localhost:9119/createGridState -H 'Content-Type: application/json' -d '{"grid":"hogwarts", "timestamp": 1607601600, "state": "GREEN"}'
+</pre>
+
+N.B. Available states: `GREEN`, `YELLOW `, `RED`
+
+### Data retrieving of the entire map:
+
+<pre>
+curl -X GET http://localhost:9119/gridState
+{
+  "gridState": [
+    {
+      "index": "1607601600-hogwarts",
+      "grid": "hogwarts",
+      "timestamp": 1607601600,
+      "state": "GREEN",
+      "creator": "cosmos123snape"
+    },
+    {
+      "index": "1641830160-hogwarts",
+      "grid": "hogwarts",
+      "timestamp": 1641830160,
+      "state": "YELLOW",
+      "creator": "cosmos123snape"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "2"
+  }
+}
+</pre>
+
+### Data retrieving of a single element
+
+<pre>
+curl -XGET http://localhost:9119/gridState/1607601600-hogwarts
+{
+  "gridState": {
+    "index": "1607601600-hogwarts",
+    "grid": "hogwarts",
+    "timestamp": 1607601600,
+    "state": "GREEN",
+    "creator": "cosmos123snape"
+  }
+}
+</pre>

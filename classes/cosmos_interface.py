@@ -108,6 +108,10 @@ class CosmosInterface:
             return 'create-default-lem-pars %s %s %s %s %s %s' % (params['lemCase'], params['pbBAU'], params['psBAU'],
                                                                   params['pbP2P'], params['psP2P'], params['beta'])
 
+        elif endpoint == '/createGridState':
+            return 'create-grid-state %s-%s %s %s %s' % (params['timestamp'], params['grid'], params['grid'],
+                                                         params['timestamp'], params['state'])
+
         elif endpoint == '/createLem':
             result = 'create-lem %s-%s-%s %s %s %s' % (params['start'], params['end'], params['aggregator'],
                                                        params['start'], params['end'], params['case'])
