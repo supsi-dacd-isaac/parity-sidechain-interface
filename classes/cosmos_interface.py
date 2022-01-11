@@ -21,7 +21,6 @@ class CosmosInterface:
         self.cfg = cfg
         self.logger = logger
         self.full_path_app = '%s%sbin%s%sd' % (self.cfg['cosmos']['goRoot'], os.sep, os.sep, self.cfg['cosmos']['app'])
-        self.account = self.get_account_info()
 
     def get_account_info(self):
         res = os.popen('%s keys list --output json' % self.full_path_app).read()
@@ -58,8 +57,11 @@ class CosmosInterface:
         if real_cmd is not None:
             cmd_str = '%s %s' % (cmd_str, real_cmd)
 
+            # Get the account
+            account = self.get_account_info()
+
             # Add name of the local account performing the transaction
-            cmd_str = '%s --from %s -y' % (cmd_str, self.account['name'])
+            cmd_str = '%s --from %s -y' % (cmd_str, account['name'])
 
             # Perform the transaction
             self.logger.info('Transaction command: %s' % cmd_str)
