@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     cmd_request = '%s/createLemDataset' % url_prefix
     logger.info('Request: %s' % cmd_request)
+    logger.info('params: %s' % params)
     r = requests.post(cmd_request, headers=headers, json=params)
     data = json.loads(r.text)
     logger.info('Response: %s' % data)

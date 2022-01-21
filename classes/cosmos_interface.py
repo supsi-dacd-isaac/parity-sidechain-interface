@@ -47,6 +47,12 @@ class CosmosInterface:
         res = requests.get(url)
         return res.status_code, res.text
 
+    def send_tokens(self, src, dest, amount):
+        if amount > 0:
+            cmd_str = '%s tx bank send %s %s %i%s -y' % (self.full_path_app, src['address'], dest['address'], amount,
+                                                         self.cfg['cosmos']['tokenName'])
+            self.perform_transaction_command(cmd_str)
+
     def do_transaction(self, cmd, params):
         # Create the command header
         cmd_str = '%s tx %s' % (self.full_path_app, self.cfg['cosmos']['app'])
@@ -63,22 +69,24 @@ class CosmosInterface:
             # Add name of the local account performing the transaction
             cmd_str = '%s --from %s -y' % (cmd_str, account['name'])
 
-            # Perform the transaction
-            self.logger.info('Transaction command: %s' % cmd_str)
-            try:
-                res = os.popen(cmd_str).read()
-                tx = res.split('\n')[-2].split(': ')[1]
-
-                # check the transaction length
-                if len(tx) == 64:
-                    return http.HTTPStatus.OK, tx, ''
-                else:
-                    return http.HTTPStatus.INTERNAL_SERVER_ERROR, tx, 'txHash length != 64'
-            except Exception as e:
-                self.logger.error('EXCEPTION: %s' % str(e))
-                return http.HTTPStatus.INTERNAL_SERVER_ERROR, None, 'Transaction performing not successful'
+            return self.perform_transaction_command(cmd_str)
         else:
             return http.HTTPStatus.NOT_FOUND, None, 'Command %s not available' % cmd
+
+    def perform_transaction_command(self, cmd_str):
+        self.logger.info('Transaction command: %s' % cmd_str)
+        try:
+            res = os.popen(cmd_str).read()
+            tx = res.split('\n')[-2].split(': ')[1]
+
+            # check the transaction length
+            if len(tx) == 64:
+                return http.HTTPStatus.OK, tx, ''
+            else:
+                return http.HTTPStatus.INTERNAL_SERVER_ERROR, tx, 'txHash length != 64'
+        except Exception as e:
+            self.logger.error('EXCEPTION: %s' % str(e))
+            return http.HTTPStatus.INTERNAL_SERVER_ERROR, None, 'Transaction performing not successful'
 
     @staticmethod
     def customize_cmd(endpoint, params):
