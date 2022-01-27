@@ -39,8 +39,8 @@ if __name__ == "__main__":
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
     dt_end = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
 
-    # Define the MarketEngine and CosmosInterface instances
     skm = SlaKpiManager(cfg, logger)
+    skm.set_main_sidechain_nodes_info()
 
     penalty_amount = {skm.local_account['name']: 0}
 
