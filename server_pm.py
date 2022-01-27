@@ -10,7 +10,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from tendo.singleton import SingleInstance
 
-from classes.cosmos_interface import CosmosInterface
+from classes.pm_sidechain_interface import PMSidechainInterface
 
 # --------------------------------------------------------------------------- #
 # Functions
@@ -18,14 +18,14 @@ from classes.cosmos_interface import CosmosInterface
 
 
 # Handler request
-def handler_class(ci_obj, cfg_obj, logger_obj):
+def handler_class(pmsi_obj, cfg_obj, logger_obj):
     class RequestHandler(BaseHTTPRequestHandler):
 
         """!
         Constructor
         """
         def __init__(self, *args, **kwargs):
-            self.ci = ci_obj
+            self.pmsi = pmsi_obj
             self.cfg = cfg_obj
             self.logger = logger_obj
             super(RequestHandler, self).__init__(*args, **kwargs)
@@ -41,13 +41,13 @@ def handler_class(ci_obj, cfg_obj, logger_obj):
         """
         def do_GET(self):
             if 'checkTx' in self.path:
-                req_status, req_data = self.ci.check_tx(self.path.split('/')[-1])
+                req_status, req_data = self.pmsi.check_tx(self.path.split('/')[-1])
                 req_data = json.dumps({'code': req_data}, indent=2)
             elif 'account' in self.path:
                 req_status = http.HTTPStatus.OK
-                req_data = json.dumps(self.ci.get_account_info(), indent=2)
+                req_data = json.dumps(self.pmsi.get_account_info(), indent=2)
             else:
-                req_status, req_data = self.ci.do_query(self.path)
+                req_status, req_data = self.pmsi.do_query(self.path)
 
             self.logger.info('GET %s?%s HTTP/1.1" %i' % (urlparse(self.path).path, urlparse(self.path).query, req_status))
 
@@ -60,7 +60,7 @@ def handler_class(ci_obj, cfg_obj, logger_obj):
             data_string = self.rfile.read(int(self.headers['Content-Length']))
             data_string = data_string.decode('UTF-8')
 
-            req_status, tx_hash, msg = ci.do_transaction(self.path, json.loads(data_string))
+            req_status, tx_hash, msg = pmsi.do_transaction(self.path, json.loads(data_string))
 
             logger.info('POST %s?%s HTTP/1.1" %i' % (urlparse(self.path).path, urlparse(self.path).query, req_status))
 
@@ -99,10 +99,10 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
-    ci = CosmosInterface(cfg, logger)
+    pmsi = PMSidechainInterface(cfg, logger)
 
     # REST server thread
-    HandlerClass = handler_class(ci, cfg, logger)
+    HandlerClass = handler_class(pmsi, cfg, logger)
     httpd = HTTPServer((cfg['server']['host'], cfg['server']['port']), HandlerClass)
 
     # Try to launch the server

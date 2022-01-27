@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import json
 
-from classes.cosmos_interface import CosmosInterface
+from classes.pm_sidechain_interface import PMSidechainInterface
 
 
-class MarketEngine:
+class MarketEngine(PMSidechainInterface):
     """
     MarketEngine class
     """
@@ -19,34 +19,24 @@ class MarketEngine:
         :param logger
         :type Logger
         """
-        self.cfg = cfg
-        self.logger = logger
-        self.url = 'http://%s:%i' % (self.cfg['server']['host'], self.cfg['server']['port'])
+        super().__init__(cfg, logger)
+
         self.default_grid_state = 'GREEN'
         self.grid_state = None
-        self.ci = CosmosInterface(cfg, logger)
-
-    def handle_get(self, endpoint, key=None):
-        if key is None:
-            key = endpoint.split('/')[3]
-
-        res = requests.get(endpoint)
-
-        if res.status_code == http.HTTPStatus.OK:
-            data = json.loads(res.text)
-            return data[key]
-        else:
-            self.logger.warning('Endpoint %s has responded with code %i, None returned' % (endpoint, res.status_code))
-            return None
 
     def get_lem_features(self, ts_start, ts_end):
-        # Still to be implemented for the players
         aggregator = self.get_aggregator()
-        lem_info = self.handle_get('%s/lem/%i-%i-%s' % (self.url, ts_start, ts_end, aggregator['idx']))
+        lem_info = self.handle_get('/lem/%i-%i-%s' % (ts_start, ts_end, aggregator['idx']))
         return lem_info['players'], aggregator
 
+    def get_market_default_parameters(self):
+        if self.grid_state is not None:
+            return self.handle_get('/defaultLemPars/%s' % self.grid_state)
+        else:
+            return self.handle_get('/defaultLemPars/%s' % self.default_grid_state)
+
     def get_grid_state(self, ts):
-        grid_state = self.handle_get('%s/gridState/%i-%s' % (self.url, ts, self.cfg['grid']['name']))
+        grid_state = self.handle_get('/gridState/%i-%s' % (ts, self.cfg['grid']['name']))
         if grid_state is not None:
             self.grid_state = list(grid_state.values())[3]
             return self.grid_state
@@ -54,47 +44,20 @@ class MarketEngine:
             self.grid_state = None
             return self.default_grid_state
 
-    def get_all_players(self):
-        return self.handle_get('%s/player' % self.url)
-
-    def get_aggregator(self):
-        return self.handle_get('%s/aggregator' % self.url, 'Aggregator')
-
-    def get_dso(self):
-        return self.handle_get('%s/dso' % self.url, 'Dso')
-
-    def get_market_default_parameters(self):
-        if self.grid_state is not None:
-            return self.handle_get('%s/defaultLemPars/%s' % (self.url, self.grid_state))
-        else:
-            return self.handle_get('%s/defaultLemPars/%s' % (self.url, self.default_grid_state))
-
-    def get_all_available_prosumers(self):
-        res = requests.get('%s/player' % self.url)
-        if res.status_code == http.HTTPStatus.OK:
-            players = json.loads(res.text)['player']
-            players_idxs = []
-            for player in players:
-                if player['role'] == 'prosumer':
-                    players_idxs.append(player['idx'])
-        else:
-            self.logger.warning('No prosumers are available')
-            players_idxs = None
-        return players_idxs
-
     def get_lem_df(self, ts, players):
         lem_raw_data = []
         for player in players:
-            data = self.handle_get('%s/lemDataset/%s-%i' % (self.url, player, ts))
+            data = self.handle_get('/lemDataset/%s-%i' % (player, ts))
+            self.logger.info('Downloaded data %s' % data)
             if data is not None:
                 lem_raw_data.append({'player': data['player'],
                                      'ec': self.power_to_energy(float(data['pconsMeasure']),
-                                                                int(self.cfg['lem']['marketsDuration'][0:-1]),
-                                                                self.cfg['lem']['marketsDuration'][-1],
+                                                                int(self.cfg['lem']['duration'][0:-1]),
+                                                                self.cfg['lem']['duration'][-1],
                                                                 self.cfg['lem']['powerToKW']),
                                      'ep': self.power_to_energy(float(data['pprodMeasure']),
-                                                                int(self.cfg['lem']['marketsDuration'][0:-1]),
-                                                                self.cfg['lem']['marketsDuration'][-1],
+                                                                int(self.cfg['lem']['duration'][0:-1]),
+                                                                self.cfg['lem']['duration'][-1],
                                                                 self.cfg['lem']['powerToKW'])
                                      })
 
@@ -141,32 +104,26 @@ class MarketEngine:
         elif case == 'd':
             return power * res * scale * 24
 
-    def move_tokens(self, balances):
-        account = self.ci.get_account_info()
-        dso = self.get_dso()
-
+    def apply_penalties_rewards(self, balances):
         # Check if the node is the DSO -> if yes rewards handling, else penalty handling
-        if dso['idx'] == account['name']:
-            self.rewards_handling(balances, dso, account)
+        if self.dso['idx'] == self.local_account['name']:
+            # Producers management, run by DSO
+            self.rewards_handling(balances, self.dso, self.local_account)
         else:
-            self.penalty_handling(balances, dso, account)
-        # self.penalty_handling(balances, dso, account)
+            # Consumer management, run by player itself
+            self.penalty_handling(balances, self.dso, self.local_account)
 
     def penalty_handling(self, balances, dso, account):
         if balances[account['name']] < 0:
             amount = abs(balances[account['name']])
             self.logger.info('PENALTY: Transfer %i tokens from %s to %s' % (amount,
                                                                             account['address'], dso['address']))
-            self.ci.send_tokens(account, dso, amount)
+            self.send_tokens(account, dso, amount)
 
     def rewards_handling(self, balances, dso, account):
+        # Cycle over the players to see if there are producers
         for k_node in balances:
             if balances[k_node] > 0:
-                # Cycle over the players to see if there are production
                 self.logger.info('REWARD: Transfer %i tokens from %s to %s' % (balances[k_node], dso['address'],
                                                                                account['address']))
-                self.ci.send_tokens(dso, account, balances[k_node])
-
-
-
-
+                self.send_tokens(dso, account, balances[k_node])
