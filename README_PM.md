@@ -24,7 +24,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_lem_** map: Container of the LEMs (Local Energy Markets)
 * **_lemDataset_** map: Container of the power time series related to the LEMs
 * **_sla_** map: Container of the SLA definition
-* **_kpi_** map: Container of the KPI definition, each of them is linked to a SLA
+* **_kpiFeatures_** map: Container of the KPIs, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
 * **_gridState_** map: Container of the grid states
   
@@ -402,24 +402,25 @@ curl -X GET "http://localhost:9119/sla/comfort01"
 }
 </pre>
 
-## **_kpi_** map:
+## **_kpiFeatures_** map:
 
-`kpi` map must be edited by `AGG` node.
+`kpiFeatures` map must be edited by `AGG` node.
 
 ### Creation:
 
 <pre>
 curl -X POST http://localhost:9119/createKpi -H 'Content-Type: application/json' \
-            -d '{"idx":"temp_too_high", "idxSla":"comfort01", "rule": "gt", "limit": 24.5, "measureUnit": "°C", "penalty": 120}'
+            -d '{"idx":"temp_too_high", "idxSla":"comfort01", "rule": "gt", "limit": 24.5, "measureUnit": "°C", "penalty": 120, "players": ["harry", "hermione"]}'
 </pre>
 
 Where:
 * `idx`: KPI identifier
 * `idxSLA`: SLA identifier to which the KPI belongs
-* `rule:` KPI rule (`lt | gt`)
-* `limit:` Limit value
-* `measureUnit:` Measure unit of the limit
-* `penalty:` Tokens penalty
+* `rule`: KPI rule (`lt | gt`)
+* `limit`: Limit value
+* `measureUnit`: Measure unit of the limit
+* `penalty`: Tokens penalty
+* `players`: Players/prosumers that have to comply the KPI 
 
 
 ### Data retrieving of the entire map:
@@ -435,6 +436,10 @@ curl -X GET "http://localhost:9119/kpi"
       "limit": "24.5",
       "mu": "°C",
       "penalty": 120,
+      "players": [
+        "harry",
+        "hermione"
+      ],
       "creator": "cosmos123dumbledore"
     }
   ],
@@ -457,6 +462,10 @@ curl -X GET "http://localhost:9119/kpi/temp_too_high"
     "limit": "24.5",
     "mu": "°C",
     "penalty": 120,
+    "players": [ 
+      "harry",
+      "hermione"
+    ],
     "creator": "cosmos123dumbledore"
   }
 }
