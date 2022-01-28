@@ -73,6 +73,15 @@ class PMSidechainInterface(CosmosInterface):
                 result = '%s %s' % (result, p)
             return result
 
+        elif endpoint == '/createKpiFeatures':
+            result = 'create-kpi-features %s %s %s %s %s %s' % (params['idx'], params['idxSla'], params['rule'],
+                                                                str(params['limit']), params['measureUnit'],
+                                                                params['penalty'])
+
+            for p in params['players']:
+                result = '%s %s' % (result, p)
+            return result
+
         elif endpoint == '/createLemMeasure':
             return 'create-lem-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['signal'],
                                                                    params['timestamp'], params['player'],

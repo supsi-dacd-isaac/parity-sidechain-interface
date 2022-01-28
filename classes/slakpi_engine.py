@@ -16,7 +16,7 @@ class SlaKpiManager(PMSidechainInterface):
         super().__init__(cfg, logger)
 
     def get_kpi_features(self, idx, ts_start, ts_end):
-        kpi_info = self.handle_get('/kpi/%s_%i-%s' % (idx, ts_start, ts_end))
+        kpi_info = self.handle_get('/kpiFeatures/%s_%i-%s' % (idx, ts_start, ts_end))
         return kpi_info
 
     def get_kpi_value(self, idx, account_name, ts_start, ts_end):

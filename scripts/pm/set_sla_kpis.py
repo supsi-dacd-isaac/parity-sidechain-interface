@@ -64,9 +64,10 @@ if __name__ == "__main__":
                 'limit': kpi['limit'],
                 'measureUnit': kpi['mu'],
                 'penalty': kpi['penalty'],
+                'players': kpi['players'],
             }
 
-            u.send_post('%s/createKpi' % url_prefix, params, logger)
+            u.send_post('%s/createKpiFeatures' % url_prefix, params, logger)
             time.sleep(cfg['utils']['sleepBetweenTransactions'])
 
     logger.info('Ending program')

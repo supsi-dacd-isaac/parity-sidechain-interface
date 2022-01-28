@@ -52,14 +52,15 @@ if __name__ == "__main__":
 
             kpi_value = round(random.uniform(float(kpi['valuesInterval'][0]), float(kpi['valuesInterval'][1])), 2)
 
-            r = requests.get('%s/kpi/%s_%i-%i' % (url_prefix, kpi['idPrefix'], int(dt_start.timestamp())+offset,
-                                                  int(dt_end.timestamp())+offset), headers=headers)
+            r = requests.get('%s/kpiFeatures/%s_%i-%i' % (url_prefix, kpi['idPrefix'],
+                                                          int(dt_start.timestamp())+offset,
+                                                          int(dt_end.timestamp())+offset), headers=headers)
             kpi_data = json.loads(r.text)
 
             params = {
                         'timestamp': int(dt_end.timestamp())+offset,
                         'player': player_data['name'],
-                        'kpi': kpi_data['kpi']['index'],
+                        'kpi': kpi_data['kpiFeatures']['index'],
                         'value': kpi_value,
                         'measureUnit': kpi['mu']
                      }

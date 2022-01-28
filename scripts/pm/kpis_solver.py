@@ -63,17 +63,24 @@ if __name__ == "__main__":
                 # Get kpi feature
                 kpi_feature = skm.get_kpi_features(kpi['idPrefix'], ts_kpi_start, ts_kpi_end)
 
-                # Get kpi value
-                kpi_dataset = skm.get_kpi_value(kpi['idPrefix'], skm.local_account['name'], ts_kpi_start, ts_kpi_end)
+                # Check if this kpis has to be considered by the current node/prosumer
+                # N.B. the deal node/prosumer is done off-chain, this is an additional checking
+                if skm.local_account['name'] in kpi_feature['players']:
+                    # Get kpi value
+                    kpi_dataset = skm.get_kpi_value(kpi['idPrefix'], skm.local_account['name'], ts_kpi_start, ts_kpi_end)
 
-                # Eventually update the account balance
-                penalty = skm.check_value(kpi_feature, kpi_dataset)
-                penalty_amount[skm.local_account['name']] -= penalty
+                    # Eventually update the account balance
+                    penalty = skm.check_value(kpi_feature, kpi_dataset)
+                    penalty_amount[skm.local_account['name']] -= penalty
 
-                logger.info('KPI %s: value: %s %s; rule: %s; limit: %s %s; '
-                            'applied penalty: %i' % (kpi_feature['index'], kpi_dataset['value'],
-                                                     kpi_feature['mu'], kpi_feature['rule'],
-                                                     kpi_feature['limit'], kpi_feature['mu'], penalty))
+                    logger.info('KPI %s: value: %s %s; rule: %s; limit: %s %s; '
+                                'applied penalty: %i' % (kpi_feature['index'], kpi_dataset['value'],
+                                                         kpi_feature['mu'], kpi_feature['rule'],
+                                                         kpi_feature['limit'], kpi_feature['mu'], penalty))
+                else:
+                    logger.warning('KPI %s (SLA %s) not to be considered by node %s' % (kpi_feature['index'],
+                                                                                        kpi_feature['sla'],
+                                                                                        skm.local_account['name']))
 
     # Eventually move tokens due to KPIs penalties
     logger.info('Total penalty: %s' % abs(penalty_amount[skm.local_account['name']]))
