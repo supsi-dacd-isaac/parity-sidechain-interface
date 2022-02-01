@@ -1,6 +1,6 @@
 # PM (Parity market) REST API:
 
-The REST API runs on `localhost:1317` as default, the configuration can be changed in `conf/*.json` configuration files. 
+The REST API runs on `localhost:9119` as default, the configuration can be changed in `conf/*.json` configuration files. 
 Basically local POST requests are used to run transactions on the sidechain, while with GETs it is possible to perform queries
 to read data.
 
