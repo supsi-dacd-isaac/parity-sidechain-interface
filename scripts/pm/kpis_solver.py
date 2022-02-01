@@ -93,6 +93,8 @@ if __name__ == "__main__":
 
     # Eventually move tokens due to KPIs penalties
     logger.info('Total penalty: %s' % abs(penalty_amount[skm.local_account['name']]))
-    skm.send_tokens(skm.dso, abs(penalty_amount[skm.local_account['name']]))
+    amount = abs(penalty_amount[skm.local_account['name']])
+    if amount > 0:
+        skm.send_tokens(skm.dso, abs(penalty_amount[skm.local_account['name']]))
 
     logger.info('Ending program')
