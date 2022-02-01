@@ -52,20 +52,22 @@ if __name__ == "__main__":
 
             kpi_value = round(random.uniform(float(kpi['valuesInterval'][0]), float(kpi['valuesInterval'][1])), 2)
 
-            r = requests.get('%s/kpiFeatures/%s_%i-%i' % (url_prefix, kpi['idPrefix'],
-                                                          int(dt_start.timestamp())+offset,
-                                                          int(dt_end.timestamp())+offset), headers=headers)
+            url = '%s/kpiFeatures/%s_%i-%i' % (url_prefix, kpi['idPrefix'], int(dt_start.timestamp())+offset,
+                                               int(dt_end.timestamp())+offset)
+            r = requests.get(url, headers=headers)
             kpi_data = json.loads(r.text)
+            if 'kpiFeatures' in kpi_data.keys():
+                params = {
+                            'timestamp': int(dt_end.timestamp())+offset,
+                            'player': player_data['name'],
+                            'kpi': kpi_data['kpiFeatures']['index'],
+                            'value': kpi_value,
+                            'measureUnit': kpi['mu']
+                         }
 
-            params = {
-                        'timestamp': int(dt_end.timestamp())+offset,
-                        'player': player_data['name'],
-                        'kpi': kpi_data['kpiFeatures']['index'],
-                        'value': kpi_value,
-                        'measureUnit': kpi['mu']
-                     }
-
-            u.send_post('%s/createKpiMeasure' % url_prefix, params, logger)
-            time.sleep(cfg['utils']['sleepBetweenTransactions'])
+                u.send_post('%s/createKpiMeasure' % url_prefix, params, logger)
+                time.sleep(cfg['utils']['sleepBetweenTransactions'])
+            else:
+                logger.warning('No KPI available at URL %s' % url)
 
     logger.info('Ending program')
