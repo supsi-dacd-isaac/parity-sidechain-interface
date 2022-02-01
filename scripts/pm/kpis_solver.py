@@ -49,6 +49,10 @@ if __name__ == "__main__":
     for sla in cfg['slas']:
         dt_start = u.calc_period_starting(dt_end, sla['solutionPeriod'])
 
+        logger.info('SLA analysis -> prefix: %s; period: [%s - %s]' % (sla['idPrefix'],
+                                                                       dt_start.strftime('%Y-%m-%d %H:%M'),
+                                                                       dt_end.strftime('%Y-%m-%d %H:%M')))
+
         # Cycle over the configured KPIs
         for kpi in sla['kpis']:
 
