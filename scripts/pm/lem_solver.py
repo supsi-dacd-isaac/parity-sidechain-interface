@@ -1,5 +1,6 @@
 # Importing section
 import json
+import datetime
 import argparse
 import logging
 from classes.influxdb_interface import InfluxDBInterface
@@ -39,6 +40,7 @@ if __name__ == "__main__":
     # Define the start/end timestamps
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
     dt_end = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lems'])
 
     me = MarketEngine(cfg, logger)
     me.set_main_sidechain_nodes_info()
