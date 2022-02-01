@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
         # Cycle over the configured KPIs
         for kpi in sla['kpis']:
-            random.seed(42)
+            random.seed()
 
             kpi_value = round(random.uniform(float(kpi['valuesInterval'][0]), float(kpi['valuesInterval'][1])), 2)
 
