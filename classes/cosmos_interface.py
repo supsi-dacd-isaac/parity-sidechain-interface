@@ -22,6 +22,7 @@ class CosmosInterface:
         self.logger = logger
         self.full_path_app = '%s%sbin%s%sd' % (self.cfg['cosmos']['goRoot'], os.sep, os.sep, self.cfg['cosmos']['app'])
         self.url = 'http://%s:%i' % (self.cfg['server']['host'], self.cfg['server']['port'])
+        self.local_account = self.get_account_info()
 
     def get_account_info(self):
         res = os.popen('%s keys list --output json' % self.full_path_app).read()
@@ -48,16 +49,13 @@ class CosmosInterface:
         res = requests.get(url)
         return res.status_code, res.text
 
-    def send_tokens(self, src, dest, amount):
+    def send_tokens(self, dest, amount):
         if amount > 0:
-            cmd_str = '%s tx bank send %s %s %i%s -y' % (self.full_path_app, src['address'], dest['address'], amount,
-                                                         self.cfg['cosmos']['tokenName'])
-            self.logger.warning('NOT ACTUATED TRANSACTION: %s' % cmd_str)
-            # self.perform_transaction_command(cmd_str)
+            self.do_token_transaction(dest, amount)
         else:
             self.logger.error('Amount to transfer must be > 0')
 
-    def do_transaction(self, cmd, params):
+    def do_application_transaction(self, cmd, params):
         # Create the command header
         cmd_str = '%s tx %s' % (self.full_path_app, self.cfg['cosmos']['app'])
 
@@ -76,6 +74,12 @@ class CosmosInterface:
             return self.perform_transaction_command(cmd_str)
         else:
             return http.HTTPStatus.NOT_FOUND, None, 'Command %s not available' % cmd
+
+    def do_token_transaction(self, dest, amount):
+        cmd_str = '%s tx bank send %s %s %i%s -y' % (self.full_path_app, self.local_account['address'],
+                                                     dest['address'], amount, self.cfg['cosmos']['tokenName'])
+
+        return self.perform_transaction_command(cmd_str)
 
     def perform_transaction_command(self, cmd_str):
         self.logger.info('Transaction command: %s' % cmd_str)
@@ -105,110 +109,5 @@ class CosmosInterface:
         else:
             self.logger.warning('Endpoint %s has responded with code %i, None returned' % (endpoint, res.status_code))
             return None
-
-    # @staticmethod
-    # def customize_cmd(endpoint, params):
-    #     if endpoint == '/createDso':
-    #         return 'create-dso %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/updateDso':
-    #         return 'update-dso %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/createAggregator':
-    #         return 'create-aggregator %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/updateAggregator':
-    #         return 'update-aggregator %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/createMarketOperator':
-    #         return 'create-market-operator %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/updateMarketOperator':
-    #         return 'update-market-operator %s %s' % (params['idx'], params['address'])
-    #
-    #     elif endpoint == '/createPlayer':
-    #         return 'create-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
-    #
-    #     elif endpoint == '/updatePlayer':
-    #         return 'update-player %s %s %s %s' % (params['idx'], params['idx'], params['address'], params['role'])
-    #
-    #     elif endpoint == '/createDefaultLemPars':
-    #         return 'create-default-lem-pars %s %s %s %s %s %s' % (params['lemCase'], params['pbBAU'], params['psBAU'],
-    #                                                               params['pbP2P'], params['psP2P'], params['beta'])
-    #
-    #     elif endpoint == '/createGridState':
-    #         return 'create-grid-state %s-%s %s %s %s' % (params['timestamp'], params['grid'], params['grid'],
-    #                                                      params['timestamp'], params['state'])
-    #
-    #     elif endpoint == '/createLem':
-    #         result = 'create-lem %s-%s-%s %s %s %s' % (params['start'], params['end'], params['aggregator'],
-    #                                                    params['start'], params['end'], params['case'])
-    #         for mp in params['marketParameters']:
-    #             result = '%s %s' % (result, mp)
-    #
-    #         for p in params['players']:
-    #             result = '%s %s' % (result, p)
-    #         return result
-    #
-    #     elif endpoint == '/createLemMeasure':
-    #         return 'create-lem-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['signal'],
-    #                                                                params['timestamp'], params['player'],
-    #                                                                params['signal'], params['timestamp'],
-    #                                                                str(params['value']), params['measureUnit'])
-    #     elif endpoint == '/createLemDataset':
-    #         return 'create-lem-dataset %s-%s %s %s %s %s %s %s' % (params['player'],
-    #                                                                params['timestamp'],
-    #                                                                params['player'],
-    #                                                                params['timestamp'],
-    #                                                                str(params['powerConsumptionMeasure']),
-    #                                                                str(params['powerProductionMeasure']),
-    #                                                                str(params['powerConsumptionForecast']),
-    #                                                                str(params['powerProductionForecast']))
-    #
-    #     elif endpoint == '/createSla':
-    #         return 'create-sla %s %s %s' % (params['idx'], params['start'], params['end'])
-    #
-    #     elif endpoint == '/updateSla':
-    #         return 'update-sla %s %s %s' % (params['idx'], params['start'], params['end'])
-    #
-    #     elif endpoint == '/createKpi':
-    #         return 'create-kpi %s %s %s %s %s %s' % (params['idx'], params['idxSla'], params['rule'],
-    #                                                  str(params['limit']), params['measureUnit'], params['penalty'])
-    #
-    #     elif endpoint == '/updateKpi':
-    #         return 'update-kpi %s %s %s %s %s %s' % (params['idx'], params['idxSla'], params['rule'],
-    #                                                  str(params['limit']), params['measureUnit'], params['penalty'])
-    #
-    #     elif endpoint == '/createKpiMeasure':
-    #         return 'create-kpi-measure %s-%s-%s %s %s %s %s %s' % (params['player'], params['kpi'],
-    #                                                                params['timestamp'], params['kpi'],
-    #                                                                params['player'], params['timestamp'],
-    #                                                                str(params['value']), params['measureUnit'])
-    #
-    #     else:
-    #         return None
-    #
-    # def handle_get(self, endpoint, key=None):
-    #     endpoint = '%s%s' % (self.url, endpoint)
-    #     if key is None:
-    #         key = endpoint.split('/')[3]
-    #
-    #     res = requests.get(endpoint)
-    #
-    #     if res.status_code == http.HTTPStatus.OK:
-    #         data = json.loads(res.text)
-    #         return data[key]
-    #     else:
-    #         self.logger.warning('Endpoint %s has responded with code %i, None returned' % (endpoint, res.status_code))
-    #         return None
-    #
-    # def get_all_players(self):
-    #     return self.handle_get('/player')
-    #
-    # def get_aggregator(self):
-    #     return self.handle_get('/aggregator', 'Aggregator')
-    #
-    # def get_dso(self):
-    #     return self.handle_get('/dso', 'Dso')
 
 

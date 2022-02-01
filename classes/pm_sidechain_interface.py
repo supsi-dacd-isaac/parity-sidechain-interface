@@ -1,7 +1,5 @@
 import http
-
 import requests
-import os
 import json
 
 from classes.cosmos_interface import CosmosInterface
@@ -20,12 +18,10 @@ class PMSidechainInterface(CosmosInterface):
         :type Logger
         """
         super().__init__(cfg, logger)
-        self.local_account = None
         self.aggregator = None
         self.dso = None
 
     def set_main_sidechain_nodes_info(self):
-        self.local_account = self.get_account_info()
         self.aggregator = self.get_aggregator()
         self.dso = self.get_dso()
 

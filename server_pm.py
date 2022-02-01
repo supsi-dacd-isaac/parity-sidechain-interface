@@ -60,7 +60,11 @@ def handler_class(pmsi_obj, cfg_obj, logger_obj):
             data_string = self.rfile.read(int(self.headers['Content-Length']))
             data_string = data_string.decode('UTF-8')
 
-            req_status, tx_hash, msg = pmsi.do_transaction(self.path, json.loads(data_string))
+            # Check if the transaction is related to tokens management
+            if 'Tokens' in self.path:
+                req_status, tx_hash, msg = pmsi.do_token_transaction(self.path, json.loads(data_string))
+            else:
+                req_status, tx_hash, msg = pmsi.do_application_transaction(self.path, json.loads(data_string))
 
             logger.info('POST %s?%s HTTP/1.1" %i' % (urlparse(self.path).path, urlparse(self.path).query, req_status))
 
