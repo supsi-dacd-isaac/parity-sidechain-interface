@@ -76,20 +76,27 @@ if __name__ == "__main__":
                         # Get kpi value
                         kpi_dataset = skm.get_kpi_value(kpi['idPrefix'], skm.local_account['name'], ts_kpi_start, ts_kpi_end)
 
-                        # Eventually update the account balance
-                        penalty = skm.check_value(kpi_feature, kpi_dataset)
-                        penalty_amount[skm.local_account['name']] -= penalty
+                        if kpi_dataset is not None:
+                            # Eventually update the account balance
+                            penalty = skm.check_value(kpi_feature, kpi_dataset)
+                            penalty_amount[skm.local_account['name']] -= penalty
 
-                        logger.info('KPI %s: value: %s %s; rule: %s; limit: %s %s; '
-                                    'applied penalty: %i' % (kpi_feature['index'], kpi_dataset['value'],
-                                                             kpi_feature['mu'], kpi_feature['rule'],
-                                                             kpi_feature['limit'], kpi_feature['mu'], penalty))
+                            logger.info('KPI %s: value: %s %s; rule: %s; limit: %s %s; '
+                                        'applied penalty: %i' % (kpi_feature['index'], kpi_dataset['value'],
+                                                                 kpi_feature['mu'], kpi_feature['rule'],
+                                                                 kpi_feature['limit'], kpi_feature['mu'], penalty))
+                        else:
+                            logger.warning('KPI dataset %s-%s_%i-%i-%i not available' % (skm.local_account['name'],
+                                                                                         kpi['idPrefix'],
+                                                                                         ts_kpi_start,
+                                                                                         ts_kpi_end,
+                                                                                         ts_kpi_end))
                     else:
                         logger.warning('KPI %s (SLA %s) not to be considered by node %s' % (kpi_feature['index'],
                                                                                             kpi_feature['sla'],
                                                                                             skm.local_account['name']))
                 else:
-                    logger.warning('KPI %s_%i-%i is not defined' % (kpi['idPrefix'], ts_kpi_start, ts_kpi_end))
+                    logger.warning('KPI %s_%i-%i not available' % (kpi['idPrefix'], ts_kpi_start, ts_kpi_end))
 
     # Eventually move tokens due to KPIs penalties
     logger.info('Total penalty: %s' % abs(penalty_amount[skm.local_account['name']]))
