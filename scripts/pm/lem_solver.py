@@ -60,6 +60,9 @@ if __name__ == "__main__":
         ts_lem_start = int(dt_lem_start.timestamp())
         ts_lem_end = int(dt_lem_end.timestamp())
 
+        logger.info('LEM analysis -> period: [%s - %s]' % (dt_lem_start.strftime('%Y-%m-%d %H:%M'),
+                                                           dt_lem_end.strftime('%Y-%m-%d %H:%M')))
+
         # Go to the next market
         dt_curr = u.get_end_dt(dt_curr, cfg['lem']['duration'])
 

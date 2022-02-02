@@ -35,7 +35,7 @@ class MarketEngine(PMSidechainInterface):
     def get_grid_state(self, ts):
         grid_state = self.handle_get('/gridState/%i-%s' % (ts, self.cfg['grid']['name']))
         if grid_state is not None:
-            self.grid_state = list(grid_state.values())[3]
+            self.grid_state = grid_state['state']
             return self.grid_state
         else:
             self.grid_state = None
