@@ -119,6 +119,9 @@ class PMSidechainInterface(CosmosInterface):
     def get_all_players(self):
         return self.handle_get('/player')
 
+    def get_single_player(self, idx):
+        return self.handle_get('/player/%s' % idx)
+
     def get_aggregator(self):
         return self.handle_get('/aggregator', 'Aggregator')
 

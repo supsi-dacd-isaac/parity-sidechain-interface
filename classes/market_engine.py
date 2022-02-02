@@ -1,8 +1,5 @@
-import http
-import requests
 import numpy as np
 import pandas as pd
-import json
 
 from classes.pm_sidechain_interface import PMSidechainInterface
 
@@ -108,22 +105,24 @@ class MarketEngine(PMSidechainInterface):
         # Check if the node is the DSO -> if yes rewards handling, else penalty handling
         if self.dso['idx'] == self.local_account['name']:
             # Producers management, run by DSO
-            self.rewards_handling(balances, self.dso, self.local_account)
+            self.rewards_handling(balances)
         else:
             # Consumer management, run by player itself
-            self.penalty_handling(balances, self.dso, self.local_account)
+            self.penalty_handling(balances)
 
-    def penalty_handling(self, balances, dso, account):
-        if balances[account['name']] < 0:
-            amount = abs(balances[account['name']])
-            self.logger.info('PENALTY: Transfer %i tokens from %s to %s' % (amount,
-                                                                            account['address'], dso['address']))
-            self.send_tokens(account, dso, amount)
+    def penalty_handling(self, balances):
+        if balances[self.local_account['name']] < 0:
+            amount = abs(balances[self.local_account['name']])
+            self.logger.info('PENALTY: Transfer %i tokens from %s to %s' % (amount, self.local_account['address'],
+                                                                            self.dso['address']))
+            self.send_tokens(self.dso, amount)
 
-    def rewards_handling(self, balances, dso, account):
+    def rewards_handling(self, balances):
         # Cycle over the players to see if there are producers
         for k_node in balances:
             if balances[k_node] > 0:
-                self.logger.info('REWARD: Transfer %i tokens from %s to %s' % (balances[k_node], dso['address'],
-                                                                               account['address']))
-                self.send_tokens(dso, account, balances[k_node])
+                # Get destination address
+                dest = self.get_single_player(k_node)
+                self.logger.info('REWARD: Transfer %i tokens from %s to %s' % (balances[k_node], self.dso['address'],
+                                                                               dest['address']))
+                self.send_tokens(dest, balances[k_node])
