@@ -55,40 +55,29 @@ if __name__ == "__main__":
     res = requests.get('%s/aggregator' % cfg['sidechainRestApi'])
     aggregator_id = json.loads(res.text)['Aggregator']['idx']
 
-    # Get the players
-    res = requests.get('%s/player' % cfg['sidechainRestApi'])
-    if res.status_code == http.HTTPStatus.OK:
-        players = json.loads(res.text)['player']
-        players_idxs = []
-        for player in players:
-            if player['role'] == 'prosumer':
-                players_idxs.append(player['idx'])
+    params = {
+        'start': int(dt_start.timestamp()),
+        'end': int(dt_end.timestamp()),
+        'aggregator': aggregator_id,
+        'case': 'N/A',
+        'marketParameters': [0, 0, 0, 0, 0],
+        'players': cfg['lem']['players']
+    }
 
-        params = {
-            'start': int(dt_start.timestamp()),
-            'end': int(dt_end.timestamp()),
-            'aggregator': aggregator_id,
-            'case': 'N/A',
-            'marketParameters': [0, 0, 0, 0, 0],
-            'players': players_idxs
-        }
+    cmd_request = '%s/createLem' % url_prefix
+    logger.info('Request: %s' % cmd_request)
+    logger.info('Parameters: %s' % params)
+    r = requests.post(cmd_request, headers=headers, json=params)
+    data = json.loads(r.text)
+    logger.info('Response: %s' % data)
 
-        cmd_request = '%s/createLem' % url_prefix
-        logger.info('Request: %s' % cmd_request)
-        logger.info('Parameters: %s' % params)
-        r = requests.post(cmd_request, headers=headers, json=params)
-        data = json.loads(r.text)
-        logger.info('Response: %s' % data)
+    # Wait some seconds to be sure that the transaction has been handled
+    time.sleep(cfg['utils']['sleepBetweenTransactions'])
 
-        # Wait some seconds to be sure that the transaction has been handled
-        time.sleep(cfg['utils']['sleepBetweenTransactions'])
-
-        check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
-        logger.info('Check tx: %s' % check_tx_url)
-        r = requests.get(check_tx_url)
-        data = json.loads(r.text)
-        logger.info('Response: %s' % data)
-    else:
-        logger.error('Players not available, do nothing')
+    check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
+    logger.info('Check tx: %s' % check_tx_url)
+    r = requests.get(check_tx_url)
+    data = json.loads(r.text)
+    logger.info('Response: %s' % data)
 
     logger.info('Ending program')
