@@ -48,6 +48,9 @@ if __name__ == "__main__":
     elif cfg['lem']['duration'][-1] == 'd':
         dt_end = dt_start + datetime.timedelta(days=int(cfg['lem']['duration'][0:-1]))
 
+    dt_start = dt_start - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemSetting'])
+    dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemSetting'])
+
     # Get the aggregator
     res = requests.get('%s/aggregator' % cfg['sidechainRestApi'])
     aggregator_id = json.loads(res.text)['Aggregator']['idx']

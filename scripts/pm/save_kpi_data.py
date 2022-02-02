@@ -45,6 +45,8 @@ if __name__ == "__main__":
     for sla in cfg['slas']:
         dt_start, dt_end, offset = u.get_start_end(sla['duration'], InfluxDBInterface(cfg=cfg, logger=logger),
                                                    back=True)
+        dt_start = dt_start - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiDataSaving'])
+        dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiDataSaving'])
 
         # Cycle over the configured KPIs
         for kpi in sla['kpis']:

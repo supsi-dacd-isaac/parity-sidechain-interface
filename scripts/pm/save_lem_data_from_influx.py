@@ -46,6 +46,7 @@ if __name__ == "__main__":
     # Define the timestamp that will be the same for all the signals
     now = datetime.datetime.now()
     dt = now.replace(second=0)
+    dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemDataSaving'])
 
     power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
     power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)

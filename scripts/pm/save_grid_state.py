@@ -1,5 +1,6 @@
 # Importing section
 import json
+import datetime
 import requests
 import argparse
 import logging
@@ -39,6 +40,7 @@ if __name__ == "__main__":
 
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
     dt = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['gridStateSetting'])
 
     # Get the state according to the configured probabilities
     elements = []
