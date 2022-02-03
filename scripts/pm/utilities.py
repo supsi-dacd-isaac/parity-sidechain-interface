@@ -64,3 +64,12 @@ def send_post(cmd_request, parameters, logger):
     r = requests.post(cmd_request, headers=headers, json=parameters)
     data = json.loads(r.text)
     logger.info('Response: %s' % data)
+    return data
+
+
+def send_get(cmd_request, logger):
+    logger.info('Request: %s' % cmd_request)
+    r = requests.get(cmd_request)
+    data = json.loads(r.text)
+    logger.info('Response: %s' % data)
+
