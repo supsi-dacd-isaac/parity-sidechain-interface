@@ -23,6 +23,7 @@ def store_dataset(cmd, pars, logger):
     time.sleep(8)
     u.send_get('%s/checkTx/%s' % (url_prefix, ret_data['tx_hash']), logger)
 
+
 # Main
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     store_dataset('createMarketOperator', params, logger)
 
     # Set the players
-    for acc in accs_addrs.keys():
+    for acc in cfg['roles']['prosumers']:
         params = {'idx': acc, 'address': accs_addrs[acc], 'role': 'prosumer'}
         store_dataset('createPlayer', params, logger)
 
