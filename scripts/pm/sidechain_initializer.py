@@ -34,6 +34,9 @@ def get_pseudonyms(cfg):
     pseudos = dict()
     for prosumer in cfg['roles']['prosumers']:
         pseudos[prosumer] = get_pseudonym(cfg, prosumer)
+    pseudos[cfg['roles']['dso']] = get_pseudonym(cfg, cfg['roles']['dso'])
+    pseudos[cfg['roles']['aggregator']] = get_pseudonym(cfg, cfg['roles']['aggregator'])
+    pseudos[cfg['roles']['marketOperator']] = get_pseudonym(cfg, cfg['roles']['marketOperator'])
 
     return pseudos
 
