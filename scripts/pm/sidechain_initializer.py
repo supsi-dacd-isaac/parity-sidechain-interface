@@ -3,49 +3,9 @@ import json
 import argparse
 import logging
 import time
-import requests
-import http
 import utilities as u
 
-
-def get_addresses(input_file):
-    fr = open(input_file, 'r')
-    addrs = dict()
-    for x in fr:
-        if 'print_account_address' not in x:
-            x = x[0:-1]
-            (acc, addr) = x.split(',')
-            addrs[acc] = addr
-    fr.close()
-    return addrs
-
-
-def get_pseudonym(cfg, plain_text):
-    res = requests.get(url='%s=%s' % (cfg['pseudonymization']['pseudonomizerWebService'], plain_text),
-                       timeout=cfg['pseudonymization']['timeout'])
-
-    if res.status_code == http.HTTPStatus.OK:
-        return json.loads(res.text)['pseudonym']
-    else:
-        return None
-
-
-def get_pseudonyms(cfg):
-    pseudos = dict()
-    for prosumer in cfg['roles']['prosumers']:
-        pseudos[prosumer] = get_pseudonym(cfg, prosumer)
-    pseudos[cfg['roles']['dso']] = get_pseudonym(cfg, cfg['roles']['dso'])
-    pseudos[cfg['roles']['aggregator']] = get_pseudonym(cfg, cfg['roles']['aggregator'])
-    pseudos[cfg['roles']['marketOperator']] = get_pseudonym(cfg, cfg['roles']['marketOperator'])
-
-    return pseudos
-
-
-def get_identifier(pseudos, idx):
-    if pseudos is None:
-        return idx
-    else:
-        return pseudos[idx]
+from classes.pseudonymizer import Pseudonymizer
 
 
 def store_dataset(cmd, pars, logger):
@@ -80,30 +40,32 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
+    pseudo = Pseudonymizer(cfg, logger)
+
     # Get the addresses
-    accs_addrs = get_addresses(cfg['accountsAddressesfile'])
+    accs_addrs = pseudo.get_addresses(cfg['accountsAddressesfile'])
 
     # Get the pseudonyms
     if cfg['pseudonymization']['enabled'] is True:
-        pseudonyms = get_pseudonyms(cfg)
+        pseudonyms = pseudo.get_pseudonyms()
     else:
         pseudonyms = None
 
     # Set the DSO
-    idx = get_identifier(pseudonyms, cfg['roles']['dso'])
+    idx = pseudo.get_identifier(pseudonyms, cfg['roles']['dso'])
     store_dataset('createDso', {'idx': idx, 'address': accs_addrs[idx]}, logger)
 
     # Set the Aggregator
-    idx = get_identifier(pseudonyms, cfg['roles']['aggregator'])
+    idx = pseudo.get_identifier(pseudonyms, cfg['roles']['aggregator'])
     store_dataset('createAggregator', {'idx': idx, 'address': accs_addrs[idx]}, logger)
 
     # Set the Market Operator
-    idx = get_identifier(pseudonyms, cfg['roles']['marketOperator'])
+    idx = pseudo.get_identifier(pseudonyms, cfg['roles']['marketOperator'])
     store_dataset('createMarketOperator', {'idx': idx, 'address': accs_addrs[idx]}, logger)
 
     # Set the players
     for acc in cfg['roles']['prosumers']:
-        idx = get_identifier(pseudonyms, acc)
+        idx = pseudo.get_identifier(pseudonyms, acc)
         store_dataset('createPlayer', {'idx': idx, 'address': accs_addrs[idx], 'role': 'prosumer'}, logger)
 
     # Set the default market parameters
