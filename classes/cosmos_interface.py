@@ -44,8 +44,15 @@ class CosmosInterface:
                 return http.HTTPStatus.INTERNAL_SERVER_ERROR, -1
 
     def do_query(self, end_point):
+
+        if 'balances' in end_point:
+            prefix = 'cosmos/bank/v1beta1'
+
+        else:
+            prefix = self.cfg['cosmos']['requestEndpointHeader']
+
         url = '%s://%s:%i/%s%s' % (self.cfg['cosmos']['protocol'], self.cfg['cosmos']['host'],
-                                   self.cfg['cosmos']['port'], self.cfg['cosmos']['requestEndpointHeader'], end_point)
+                                   self.cfg['cosmos']['port'], prefix, end_point)
         res = requests.get(url)
         return res.status_code, res.text
 

@@ -16,6 +16,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 ## Elements manageable by PM REST API:
 
 * **_account_**: Account information (e.g. name and address of the node).
+* **_balances_**: Balances information (e.g. token owned by an account).
 * **_dso_**: Single element representing the node responsible for the maintenance of `player` and `gridState` maps.  
 * **_aggregator_**: Single element representing the node responsible for the management of `lem`, `sla` and `kpi` maps.
 * **_marketOperator_**: Single element representing the node responsible for the management of `defaultLemPars` maps.
@@ -36,7 +37,25 @@ curl -X GET "http://localhost:9119/account"
 </pre>
 
 N.B.
-The output of the query above is returned only running the command on the DSO node. 
+The output of the query is related to the node account. 
+
+## **_balances_** element:
+
+<pre>
+curl -X GET "http://localhost:9119/balances/cosmos123granger" 
+{
+  "balances": [
+    {
+      "denom": "ect",
+      "amount": "1000000"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "1"
+  }
+} 
+</pre>
 
 ## **_dso_** element:
 
