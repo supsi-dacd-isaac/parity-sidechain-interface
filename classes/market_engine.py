@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 
@@ -102,9 +103,9 @@ class MarketEngine(PMSidechainInterface):
             return power * res * scale * 24
 
     def apply_penalties_rewards(self, balances):
-        # Check if the node is the DSO -> if yes rewards handling, else penalty handling
-        if self.dso['idx'] == self.local_account['name']:
-            # Producers management, run by DSO
+        # Check if the node is the aggregator -> if yes rewards handling, else penalty handling
+        if self.aggregator['idx'] == self.local_account['name']:
+            # Producers management, run by aggregator
             self.rewards_handling(balances)
         else:
             # Consumer management, run by player itself
@@ -114,8 +115,8 @@ class MarketEngine(PMSidechainInterface):
         if balances[self.local_account['name']] < 0:
             amount = abs(balances[self.local_account['name']])
             self.logger.info('PENALTY: Transfer %i tokens from %s to %s' % (amount, self.local_account['address'],
-                                                                            self.dso['address']))
-            self.send_tokens(self.dso, amount)
+                                                                            self.aggregator['address']))
+            self.send_tokens(self.aggregator, amount)
 
     def rewards_handling(self, balances):
         # Cycle over the players to see if there are producers
@@ -123,6 +124,8 @@ class MarketEngine(PMSidechainInterface):
             if balances[k_node] > 0:
                 # Get destination address
                 dest = self.get_single_player(k_node)
-                self.logger.info('REWARD: Transfer %i tokens from %s to %s' % (balances[k_node], self.dso['address'],
+                self.logger.info('REWARD: Transfer %i tokens from %s to %s' % (balances[k_node],
+                                                                               self.aggregator['address'],
                                                                                dest['address']))
                 self.send_tokens(dest, balances[k_node])
+                time.sleep(self.cfg['utils']['sleepBetweenTransactions'])
