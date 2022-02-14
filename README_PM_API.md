@@ -298,11 +298,23 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus"
 
 ### Creation:
 
+* **Without forecasts saving:**
+
 <pre>
 curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
              -d '{"player":"hermione", "timestamp": 1608984000, "powerConsumptionMeasure": 2345.7, \ 
                   "powerProductionMeasure": 1462.3, "powerConsumptionForecast": "None", "powerProductionForecast": "None"}'
 </pre>
+
+* **With saving of the forecasts related to the 4 next steps:**
+
+<pre>
+curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
+             -d '{"player":"hermione", "timestamp": 1608984000, \
+                  "powerConsumptionMeasure": 2345.7, "powerProductionMeasure": 1462.3, \ 
+                  "powerConsumptionForecast": "2250,2400,1600,1750", "powerProductionForecast": "1400,1600,1800,1800"}'
+</pre>
+
 
 Where:
 * `player`: Prosumer saving the data
