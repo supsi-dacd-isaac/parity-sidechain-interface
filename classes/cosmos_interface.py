@@ -62,26 +62,6 @@ class CosmosInterface:
         else:
             self.logger.error('Amount to transfer must be > 0')
 
-    def do_application_transaction(self, cmd, params):
-        # Create the command header
-        cmd_str = '%s tx %s' % (self.full_path_app, self.cfg['cosmos']['app'])
-
-        # Customize the command if available
-        real_cmd = self.customize_cmd(cmd, params)
-
-        if real_cmd is not None:
-            cmd_str = '%s %s' % (cmd_str, real_cmd)
-
-            # Get the account
-            account = self.get_account_info()
-
-            # Add name of the local account performing the transaction
-            cmd_str = '%s --from %s -y' % (cmd_str, account['name'])
-
-            return self.perform_transaction_command(cmd_str)
-        else:
-            return http.HTTPStatus.NOT_FOUND, None, 'Command %s not available' % cmd
-
     def do_token_transaction(self, dest, amount):
         cmd_str = '%s tx bank send %s %s %i%s -y' % (self.full_path_app, self.local_account['address'],
                                                      dest['address'], amount, self.cfg['cosmos']['tokenName'])
