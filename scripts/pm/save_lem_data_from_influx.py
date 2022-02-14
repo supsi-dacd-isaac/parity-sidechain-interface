@@ -51,13 +51,22 @@ if __name__ == "__main__":
     power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
     power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
 
+    # Calculate forecasts for the next steps using the fixed value just acquired
+    forecast_imp = ''
+    forecast_exp = ''
+    for i in range(0, cfg['lem']['forecastedSteps']):
+        forecast_imp = '%s%.1f,' % (forecast_imp, float(power_imp))
+        forecast_exp = '%s%.1f,' % (forecast_exp, float(power_exp))
+    forecast_imp = forecast_imp[0:-1]
+    forecast_exp = forecast_exp[0:-1]
+
     params = {
                 'timestamp': int(dt.timestamp()),
                 'player': player_data['name'],
                 'powerConsumptionMeasure': round(float(power_imp), 1),
                 'powerProductionMeasure': round(float(power_exp), 1),
-                'powerConsumptionForecast': None,
-                'powerProductionForecast': None,
+                'powerConsumptionForecast': forecast_imp,
+                'powerProductionForecast': forecast_exp,
              }
 
     cmd_request = '%s/createLemDataset' % url_prefix
@@ -66,7 +75,6 @@ if __name__ == "__main__":
     r = requests.post(cmd_request, headers=headers, json=params)
     data = json.loads(r.text)
     logger.info('Response: %s' % data)
-    data['tx_hash']
 
     # Wait some seconds to be sure that the transaction has been handled
     time.sleep(cfg['utils']['sleepBetweenTransactions'])
