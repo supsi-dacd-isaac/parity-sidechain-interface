@@ -52,13 +52,17 @@ if __name__ == "__main__":
     power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
 
     # Calculate forecasts for the next steps using the fixed value just acquired
-    forecast_imp = ''
-    forecast_exp = ''
-    for i in range(0, cfg['lem']['forecastedSteps']):
-        forecast_imp = '%s%.0f,' % (forecast_imp, float(power_imp))
-        forecast_exp = '%s%.0f,' % (forecast_exp, float(power_exp))
-    forecast_imp = forecast_imp[0:-1]
-    forecast_exp = forecast_exp[0:-1]
+    if cfg['lem']['forecastedSteps'] > 0:
+        forecast_imp = ''
+        forecast_exp = ''
+        for i in range(0, cfg['lem']['forecastedSteps']):
+            forecast_imp = '%s%.0f,' % (forecast_imp, float(power_imp))
+            forecast_exp = '%s%.0f,' % (forecast_exp, float(power_exp))
+        forecast_imp = forecast_imp[0:-1]
+        forecast_exp = forecast_exp[0:-1]
+    else:
+        forecast_imp = 'none'
+        forecast_exp = 'none'
 
     params = {
                 'timestamp': int(dt.timestamp()),
