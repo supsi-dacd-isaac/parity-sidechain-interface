@@ -189,6 +189,6 @@ class PMSidechainInterface(CosmosInterface):
                     # Get balance
                     bal_st, bal_data = self.do_query('/balances/%s' % player['address'])
                     if int(json.loads(bal_data)['balances'][0]['amount']) >= min_amount:
-                        winners.append(candidate)
+                        winners.append(idx_candidate)
 
         return winners
