@@ -66,14 +66,14 @@ class MarketEngine(PMSidechainInterface):
 
         ec_tot = lem_df['ec'].sum()
         ep_tot = lem_df['ep'].sum()
-        # ef_tot = ec_tot - ep_tot
+        ef_tot = ec_tot - ep_tot
 
         # Transform prices from cts (string) to CHF (float)
         pb_bau = float(lem_parameters['pbBAU']) / 100
         pb_p2p = float(lem_parameters['pbP2P']) / 100
         ps_bau = float(lem_parameters['psBAU']) / 100
         ps_p2p = float(lem_parameters['psP2P']) / 100
-        # beta = float(lem_parameters['psP2P'])
+        beta = float(lem_parameters['psP2P'])
 
         if ec_tot > 0:
             p_buy = (ec_tot * pb_bau - np.min([ec_tot, ep_tot])*(pb_bau-pb_p2p)) / ec_tot
@@ -86,10 +86,20 @@ class MarketEngine(PMSidechainInterface):
             p_sell = ps_bau
 
         for player in lem_df.index:
+            # 1) Token penalty related to energy consumption
             tkns_cons = int(round(lem_df['ec'][player] * p_buy * self.cfg['lem']['currency2Tkn'], 0))
+
+            # 2) Token penalty related to energy production
             tkns_prod = int(round(lem_df['ep'][player] * p_sell * self.cfg['lem']['currency2Tkn'], 0))
-            # todo beta (ef -> energy flow) still to be implemented
-            players_balance[player] += tkns_prod - tkns_cons
+
+            # 3) Token penalty related to energy flow
+            ef_node = lem_df['ec'][player] - lem_df['ep'][player]
+            # - ef_node * ef_tot > 0 => the node has followed the community => quadratic penalty
+            # - ef_node * ef_tot < 0 => the node has not followed the community => quadratic reward
+            tkns_flow = int(beta * ef_node * ef_tot * self.cfg['lem']['currency2Tkn'])
+
+            # 4) New player balance (N.B. tkns_flow is negative in case of reward)
+            players_balance[player] += tkns_prod - tkns_cons - tkns_flow
 
         return players_balance
 
