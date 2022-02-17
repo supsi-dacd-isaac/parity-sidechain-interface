@@ -19,7 +19,7 @@ class MarketEngine(PMSidechainInterface):
         """
         super().__init__(cfg, logger)
 
-        self.default_grid_state = 'GREEN'
+        self.default_grid_state = self.GRIDSTATE_GREEN
         self.grid_state = None
 
     def get_lem_features(self, ts_start, ts_end):

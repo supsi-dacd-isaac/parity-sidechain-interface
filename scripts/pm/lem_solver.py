@@ -69,7 +69,7 @@ if __name__ == "__main__":
         # Get the grid state
         grid_state = me.get_grid_state(ts_lem_start)
 
-        if grid_state == 'RED':
+        if grid_state == me.GRIDSTATE_RED:
             logger.error('LEM was in RED state in period [%s - %s]' % (dt_lem_start, dt_lem_end))
         else:
             # Get the prosumers constituting the LEM and the aggregator

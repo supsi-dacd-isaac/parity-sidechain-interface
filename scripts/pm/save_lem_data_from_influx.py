@@ -6,6 +6,7 @@ import argparse
 import logging
 import time
 from classes.influxdb_interface import InfluxDBInterface
+from classes.market_engine import MarketEngine
 
 # Main
 if __name__ == "__main__":
@@ -47,46 +48,52 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
     dt = now.replace(second=0)
     dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemDataSaving'])
+    ts = int(dt.timestamp())
 
-    power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
-    power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
-
-    # Calculate forecasts for the next steps using the fixed value just acquired
-    if cfg['lem']['forecastedSteps'] > 0:
-        forecast_imp = ''
-        forecast_exp = ''
-        for i in range(0, cfg['lem']['forecastedSteps']):
-            forecast_imp = '%s%.0f,' % (forecast_imp, float(power_imp))
-            forecast_exp = '%s%.0f,' % (forecast_exp, float(power_exp))
-        forecast_imp = forecast_imp[0:-1]
-        forecast_exp = forecast_exp[0:-1]
+    # Check the grid state
+    me = MarketEngine(cfg, logger)
+    if me.get_grid_state(ts) == me.GRIDSTATE_RED:
+        logger.error('Grid state (step %s) is RED, no data will be saved on the sidechain' % dt.strftime('%Y-%m-%d %H:%M'))
     else:
-        forecast_imp = 'none'
-        forecast_exp = 'none'
+        power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
+        power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
 
-    params = {
-                'timestamp': int(dt.timestamp()),
-                'player': player_data['name'],
-                'powerConsumptionMeasure': round(float(power_imp), 1),
-                'powerProductionMeasure': round(float(power_exp), 1),
-                'powerConsumptionForecast': forecast_imp,
-                'powerProductionForecast': forecast_exp,
-             }
+        # Calculate forecasts for the next steps using the fixed value just acquired
+        if cfg['lem']['forecastedSteps'] > 0:
+            forecast_imp = ''
+            forecast_exp = ''
+            for i in range(0, cfg['lem']['forecastedSteps']):
+                forecast_imp = '%s%.0f,' % (forecast_imp, float(power_imp))
+                forecast_exp = '%s%.0f,' % (forecast_exp, float(power_exp))
+            forecast_imp = forecast_imp[0:-1]
+            forecast_exp = forecast_exp[0:-1]
+        else:
+            forecast_imp = 'none'
+            forecast_exp = 'none'
 
-    cmd_request = '%s/createLemDataset' % url_prefix
-    logger.info('Request: %s' % cmd_request)
-    logger.info('params: %s' % params)
-    r = requests.post(cmd_request, headers=headers, json=params)
-    data = json.loads(r.text)
-    logger.info('Response: %s' % data)
+        params = {
+                    'timestamp': ts,
+                    'player': player_data['name'],
+                    'powerConsumptionMeasure': round(float(power_imp), 1),
+                    'powerProductionMeasure': round(float(power_exp), 1),
+                    'powerConsumptionForecast': forecast_imp,
+                    'powerProductionForecast': forecast_exp,
+                 }
 
-    # Wait some seconds to be sure that the transaction has been handled
-    time.sleep(cfg['utils']['sleepBetweenTransactions'])
+        cmd_request = '%s/createLemDataset' % url_prefix
+        logger.info('Request: %s' % cmd_request)
+        logger.info('params: %s' % params)
+        r = requests.post(cmd_request, headers=headers, json=params)
+        data = json.loads(r.text)
+        logger.info('Response: %s' % data)
 
-    check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
-    logger.info('Check tx: %s' % check_tx_url)
-    r = requests.get(check_tx_url)
-    data = json.loads(r.text)
-    logger.info('Response: %s' % data)
+        # Wait some seconds to be sure that the transaction has been handled
+        time.sleep(cfg['utils']['sleepBetweenTransactions'])
+
+        check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
+        logger.info('Check tx: %s' % check_tx_url)
+        r = requests.get(check_tx_url)
+        data = json.loads(r.text)
+        logger.info('Response: %s' % data)
 
     logger.info('Ending program')

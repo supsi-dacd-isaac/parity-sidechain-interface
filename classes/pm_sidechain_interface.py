@@ -23,6 +23,10 @@ class PMSidechainInterface(CosmosInterface):
         self.dso = None
         self.pseudonymizer = Pseudonymizer(cfg, logger)
 
+        self.GRIDSTATE_RED = 'RED'
+        self.GRIDSTATE_YELLOW = 'YELLOW'
+        self.GRIDSTATE_GREEN = 'GREEN'
+
     def set_main_sidechain_nodes_info(self):
         self.aggregator = self.get_aggregator()
         self.dso = self.get_dso()
