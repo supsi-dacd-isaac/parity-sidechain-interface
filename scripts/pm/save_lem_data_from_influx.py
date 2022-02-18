@@ -39,7 +39,8 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
-    end_dt_utc = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end_utc = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end_utc = dt_end_utc - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemDataSaving'])
 
     r = requests.get('%s/account' % url_prefix, headers=headers)
     player_data = json.loads(r.text)
@@ -55,8 +56,8 @@ if __name__ == "__main__":
     if me.get_grid_state(ts) == me.GRIDSTATE_RED:
         logger.error('Grid state (step %s) is RED, no data will be saved on the sidechain' % dt.strftime('%Y-%m-%d %H:%M'))
     else:
-        power_imp = influxdb_interface.get_dataset('PImp', end_dt_utc)
-        power_exp = influxdb_interface.get_dataset('PExp', end_dt_utc)
+        power_imp = influxdb_interface.get_dataset('PImp',  dt_end_utc)
+        power_exp = influxdb_interface.get_dataset('PExp',  dt_end_utc)
 
         # Calculate forecasts for the next steps using the fixed value just acquired
         if cfg['lem']['forecastedSteps'] > 0:
