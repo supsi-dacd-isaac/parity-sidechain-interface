@@ -88,13 +88,32 @@ class PMSidechainInterface(CosmosInterface):
 
         elif endpoint == '/createLem':
             result = 'create-lem %s-%s-%s %s %s %s' % (params['start'], params['end'], params['aggregator'],
-                                                       params['start'], params['end'], params['case'])
+                                                       params['start'], params['end'], params['state'])
             for mp in params['marketParameters']:
                 result = '%s %s' % (result, mp)
 
-            # Insert in the LEM only the player with enough tokens in the balance
+            # Insert a player in the LEM only tit has enough tokens in the balance
             for p in self.check_players_availability(params['players'], self.cfg['balanceController']['minimumAmount']):
                 result = '%s %s' % (result, p)
+            return result
+
+        elif endpoint == '/updateLem':
+            idx = '%i-%i-%s' % (params['start'], params['end'], params['aggregator'])
+            data = self.do_query('/lem/%s' % idx)
+            lem_data = json.loads(data[1])
+            result = 'update-lem %s %s %s' % (idx, params['start'], params['end'])
+
+            # Set the new state
+            result = '%s %s' % (result, params['state'])
+
+            # Set the other LEM parameters
+            for mp in lem_data['lem']['params'][1:]:
+                result = '%s %s' % (result, mp)
+
+            # Insert in the LEM only the player with enough tokens in the balance
+            for p in lem_data['lem']['players']:
+                result = '%s %s' % (result, p)
+
             return result
 
         elif endpoint == '/createKpiFeatures':
