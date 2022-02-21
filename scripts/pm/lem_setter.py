@@ -7,6 +7,7 @@ import logging
 import datetime
 import time
 from classes.influxdb_interface import InfluxDBInterface
+from classes.pseudonymizer import Pseudonymizer
 
 # Main
 if __name__ == "__main__":
@@ -55,13 +56,24 @@ if __name__ == "__main__":
     res = requests.get('%s/aggregator' % cfg['sidechainRestApi'])
     aggregator_id = json.loads(res.text)['Aggregator']['idx']
 
+    pseudo = Pseudonymizer(cfg, logger)
+
+    if cfg['pseudonymization']['enabled'] is True:
+        players = []
+        for player in cfg['lem']['players']:
+            players.append(pseudo.get_pseudonym(player))
+
+    else:
+        players = cfg['lem']['players']
+
+
     params = {
         'start': int(dt_start.timestamp()),
         'end': int(dt_end.timestamp()),
         'aggregator': aggregator_id,
-        'case': 'N/A',
+        'state': 'ACTIVE',
         'marketParameters': [0, 0, 0, 0, 0],
-        'players': cfg['lem']['players']
+        'players': players
     }
 
     cmd_request = '%s/createLem' % url_prefix
