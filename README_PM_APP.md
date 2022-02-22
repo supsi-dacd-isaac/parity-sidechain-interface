@@ -5,9 +5,52 @@
 In the following a sidechain constituted of 6 nodes is considered as reference. The nodes are called DSO, AGG, PR1, 
 PR2, PR3, PR4 and their roles are reported below:
 
-* **DSO**: node related to DSO Toolset 
+* **DSO**: node related to DSO Toolset, it is the unique validator in the chain 
 * **AGG**: node related to Aggregator Toolset 
 * **PRX**: node related to prosumer/oracle _X_
+
+## Sidechain running:
+To have the PM sidechain and its REST API running, all the instances of `$GOPATH/bin/pmd` executables and 
+`server_pm.py` must run on the nodes. The former is the Cosmos application managing all the sidechain issues 
+(consensus, networking, transactions, etc.). It is a standalone executable and saves all its data in `~/.pm` folder.
+The latter is a Python server that acts as a bridge between an off-chain element of the node (e.g. the DSO Toolset) and 
+the sidechain. Its script needs a configuration file similar to the following to run:
+
+<pre>
+{
+  "server": {
+    "host": "localhost",
+    "port": 9119
+  },
+  "cosmos": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 1317,
+    "chainName": "pm",
+    "folderSignatureFiles": "/tmp",
+    "requestEndpointHeader": "supsi-dacd-isaac/pm/pm",
+    "goRoot": "$path_of_go_root",
+    "app": "pm",
+    "token": "ect"
+  }
+}
+</pre>
+
+The element `cosmos.goRoot` is the only dependent on the GO installation on the node. The other parameters 
+reported in the example above are already correct and have not to be changed.
+
+In the following the commands to launch the sidechain and its REST API on a node are reported
+
+<pre>
+$GOPATH/bin/pmd start --log_format json >> ~/log/pm.log
+(venv) python server_pm.py -c conf/config.json
+</pre>
+
+To check if the node are running and synced the following command can be used on all the nodes:
+
+<pre>
+tail -f ~/log/pm.log | grep _valid
+</pre>
 
 ## Sidechain initilization:
 Before running LEMs and SLAs/KPIs the sidechain must be properly initialized. Thus, some transactions have to run 
@@ -58,7 +101,7 @@ file as follows:
 
 N.B. In order to use the pseudonymization service the proper section in the JSON file must be set properly. 
 
-The file `"conf/accounts_addresses.txt"` contains the correspondences between the node identifiers(the pseudonyms) and 
+The file `"conf/accounts_addresses.txt"` contains the correspondences between the node identifiers (the pseudonyms) and 
 the Cosmos accounts.
 
 ## LEMs management:
@@ -91,33 +134,62 @@ at the beginning of each day the last 96 LEMs are solved.
 * LEM solving: hourly
 * Example period: 12:00-13:00
 
+The following image shows the transactions sequence needed to run the first LEM in the hour 12:00-13:00 (called 
+`LEM_Q1`) and the solution of the 4 LEMs in the example period. Below the explanations of the transactions colors:
+
+* Orange: Transaction performed by DSO
+* Green: Transaction performed by AGG
+* Red: Transaction performed by PR1
+* Light blue: Transaction performed by PR2
+* Yellow: Transaction performed by PR3
+* Violet: Transaction performed by PR4
+
+
+![Alt text](img/LEM_sequences.png?raw=true "LEM sequences")
+
+### Transactions to run before the LEM starting
+Transactions 1 and 2 have to be performed before the beginning of the period related to the LEM, in the example 
+12:00-12:15. Transaction 1 stores on the sidechain the grid state signal and is performed by DSO. Transaction 2 saves 
+main LEM features, basically the list of the prosumer that will play the LEM (i.e. will store its energy 
+production/consumption).
+
+### Transactions to run after the LEM ending
+Once LEM_Q1 is finished, in the example after 12:15, transactions 3, 4, 5 and 6 are performed by the the prosumer to 
+store on the sidechain their energy production/consumption. 
+
+### Transactions to solve a set of LEMs
+Periodically (in the example on a hourly basis), nodes AGG, PR1, PR2, PR3 and PR4 perform transactions to update their 
+balances accordingly to the solution of the LEMs related to the just past hour (12:00-13:00. 
+
+### Complete sequence of the transactions
+
 <pre>
-# FIRST LEM -> period: [12:00-12:14], participants: P1, P4
+# LEM_Q1 -> period: [12:00-12:14], participants: P1, P2, P3, P4
 12:00: DSO SETS THE GRID STATE FOR THE PERIOD [12:00-12:14]
 12:00: AGG SETS THE LEM COMPONENTS FOR THE PERIOD [12:00-12:14] 
 12:15: PR1 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:00-12:14]
+12:15: PR2 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:00-12:14]
+12:15: PR3 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:00-12:14]
 12:15: PR4 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:00-12:14]
 
-# SECOND LEM -> period: [12:15-12:29], participants: P1, P2, P4
+# LEM_Q2 -> period: [12:15-12:29], participants: P1, P2, P4
 12:15: DSO SET THE GRID STATE FOR THE PERIOD [12:15-12:29]
 12:15: AGG SET THE LEM COMPONENTS FOR THE PERIOD [12:15-12:29] 
 12:30: PR1 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:15-12:29]
 12:30: PR2 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:15-12:29]
 12:30: PR4 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:15-12:29]
 
-# THIRD LEM -> period: [12:30-12:44], participants: P2, P3, P4
+# LEM_Q3 -> period: [12:30-12:44], participants: P2, P3, P4
 12:30: DSO SET THE GRID STATE FOR THE PERIOD [12:30-12:44]
 12:30: AGG SET THE LEM COMPONENTS FOR THE PERIOD [12:30-12:44] 
 12:45: PR2 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:30-12:44]
 12:45: PR3 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:30-12:44]
 12:45: PR4 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:30-12:44]
 
-# THIRD LEM -> period: [12:30-12:44], participants: P1, P2, P3, P4
+# LEM_Q4 -> period: [12:30-12:44], participants: P1, P4
 12:45: DSO SET THE GRID STATE FOR THE PERIOD [12:45-12:59]
 12:45: AGG SET THE LEM COMPONENTS FOR THE PERIOD [12:45-12:59] 
 13:00: PR1 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:44-12:59]
-13:00: PR2 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:44-12:59]
-13:00: PR3 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:44-12:59]
 13:00: PR4 SAVES THE POWER CONSUMPTION/PRODUCTION RELATED TO [12:44-12:59]
 
 # MARKET SOLVING
@@ -177,6 +249,5 @@ compliant with the related rules and limits.
 15:00: SLA PAYMENT ENGINE ON PR2 CHECKS THE KPI1 VALUES AND, IN CASE, APPLIES A PENALTY
 15:00: SLA PAYMENT ENGINE ON PR3 CHECKS THE KPI2 VALUES AND, IN CASE, APPLIES A PENALTY
 15:00: SLA PAYMENT ENGINE ON PR4 CHECKS THE KPI2 VALUES AND, IN CASE, APPLIES A PENALTY
-
 </pre>
 

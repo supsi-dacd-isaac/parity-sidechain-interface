@@ -205,18 +205,18 @@ curl -X GET "http://localhost:9119/defaultLemPars/GREEN"
 
 <pre>
 curl -X POST http://localhost:9119/createLem -H 'Content-Type: application/json' \
-            -d '{"start":1608897600, "end":1608898500, "aggregator": "albus", "case": "green", "marketParameters": [0.2, 0.065, 0.14, 0.08, 0], "players": ["harry", "hermione"]}'
+            -d '{"start":1608897600, "end":1608898500, "aggregator": "albus", "state": "ACTIVE", "marketParameters": [0.2, 0.065, 0.14, 0.08, 0], "players": ["harry", "hermione"]}'
 curl -X POST http://localhost:9119/createLem -H 'Content-Type: application/json' \
-            -d '{"start":1608984000, "end":1608984900, "aggregator": "albus", "case": "yellow", "marketParameters": [0.24, 0.045, 0.14, 0.08, 0.025], "players": ["harry", "hermione"]}'
+            -d '{"start":1608984000, "end":1608984900, "aggregator": "albus", "state": "ACTIVE", "marketParameters": [0.24, 0.045, 0.14, 0.08, 0.025], "players": ["harry", "hermione"]}'
 </pre>
 
 Where:
 * `start`: LEM starting timestamp
 * `end`: LEM ending timestamp
-* `aggregator:` Aggregator identifier
-* `case:` Traffic light signal (`green | yellow | red`)
-* `marketParameters:` Parameters of the LEM (`[price_buy(BAU), price_sell(BAU), price_buy(P2P), price_sell(P2P), beta]`)
-* `players:` Prosumers constituting the LEM
+* `aggregator`: Aggregator identifier
+* `state`: LEM state (`ACTIVE | CLOSED`)
+* `marketParameters`: Parameters of the LEM (`[price_buy(BAU), price_sell(BAU), price_buy(P2P), price_sell(P2P), beta]`)
+* `players`: Prosumers constituting the LEM
 
 ### Data retrieving of the entire map:
 
@@ -229,7 +229,7 @@ curl -X GET "http://localhost:9119/lem"
       "start": 1608897600,
       "end": 1608898500,
       "params": [
-        "green",
+        "ACTIVE",
         "0.2",
         "0.65",
         "0.14",
@@ -247,7 +247,7 @@ curl -X GET "http://localhost:9119/lem"
       "start": 1608984000,
       "end": 1608984900,
       "params": [
-        "green",
+        "CLOSED",
         "0.24",
         "0.45",
         "0.14",
@@ -268,6 +268,10 @@ curl -X GET "http://localhost:9119/lem"
 }
 </pre>
 
+N.B. If no market parameters are saved in the `params` sections when LEM is created (i.e. `params=["ACTIVE", 0, 0, 0, 0, 0]`)
+then the settings defined in `defaultLemPars` will be taken into account during the LEM solving. Consequently,
+the only information that `AGG` must know and set on the sidechain to have a valid LEM is the players list.
+
 ### Data retrieving of a single element
 
 <pre>
@@ -277,7 +281,7 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus"
   "start": 1608984000,
   "end": 1608984900,
   "params": [
-    "green",
+    "CLOSED",
     "0.24",
     "0.45",
     "0.14",
