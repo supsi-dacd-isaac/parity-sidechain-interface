@@ -461,7 +461,7 @@ Where:
 ### Data retrieving of the entire map:
 
 <pre>
-curl -X GET "http://localhost:9119/kpi"
+curl -X GET "http://localhost:9119/kpiFeatures"
 {
   "kpi": [
     {
@@ -488,7 +488,7 @@ curl -X GET "http://localhost:9119/kpi"
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/kpi/temp_too_high"
+curl -X GET "http://localhost:9119/kpiFeatures/temp_too_high"
 {
   "kpi": {
     "index": "temp_too_high",

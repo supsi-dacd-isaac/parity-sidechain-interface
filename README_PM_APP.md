@@ -161,7 +161,7 @@ store on the sidechain their energy production/consumption.
 Periodically (in the example on a hourly basis), nodes AGG, PR1, PR2, PR3 and PR4 perform transactions to update their 
 balances accordingly to the solution of the LEMs related to the just past hour (12:00-13:00. 
 
-### Complete sequence of the transactions
+### Complete sequence of the transactions:
 
 <pre>
 # LEM_Q1 -> period: [12:00-12:14], participants: P1, P2, P3, P4
@@ -220,34 +220,74 @@ sidechain.
 Periodically, the KPIs of the SLAs not more active but not yet checked are analyzed to see if the saved data are 
 compliant with the related rules and limits. 
 
-### Example sequence:
+### SLA/KPI example sequence:
 
-* SLA duration: 2 hours
-* KPIs (KPI1 and KPI2) time resolution: 1 hour
-* PR1 and PR2 must be compliant to KPI1
-* PR3 and PR4 must be compliant to KPI2
+* SLA duration: 1 hours
+* KPI rule: `max(Tint) > 21.0` (i.e. the hourly maximum of temperature signal `Tint` must be greater than 21.0 °C) 
+* Example period: 12:00-14:00
+* Involved prosumers : PR1, PR2, PR3, PR4 
+
+The following image shows the transactions sequence needed to run a SLA comprehensive of a KPI in the interval 12:00-14:00.
+In the example the data related to the KPI must be saved every hour. Below the explanations of the transactions colors:
+
+* Green: Transaction performed by AGG
+* Red: Transaction performed by PR1
+* Light blue: Transaction performed by PR2
+* Yellow: Transaction performed by PR3
+* Violet: Transaction performed by PR4
+
+![Alt text](img/SLAKPI_sequences.png?raw=true "SLA/KPI sequences")
+
+### Transactions to run before the SLA/KPI starting
+Transactions 1 and 2 have to be performed before the beginning of the period related to the SLA, in the example 
+12:00-12:59. Transaction 1 stores on the sidechain the SLA features, like the identifier and the interval. 
+Transaction 2 saves data about the KPI features (e.g. threshold, token penalty, etc.).
+
+N.B. In this simple example we have a SLA with a KPI. In a generic case with N KPIs, the amount of the transactions to 
+perform will be N+1.
+
+### Transactions to run after the SLA/KPI ending
+After the SLA/KPIs ending each involved prosumers has to store on the sidechain its `max(Tint)` value (transactions 3, 4, 5, 6).
+
+### Transactions to solve a set of SLA/KPIs
+Periodically (in the example every two hours), each prosumer involved on at least one KPI of the last SLAs (in 
+the example PR1, PR2, PR3 and PR4) checks if it was always compliant. If not, it performs a transaction related to the 
+total tokens penalty.
+
+N.B. As shown in the example, only two prosumers (PR1 and PR4) will have a penalty (transactions 7 and 8), but not PR2 and PR3.
+This fact happens because in the example PR1 and PR4 were not compliant with all the KPIs of the past two hours. 
+On the contrary, PR2 and PR3 were always compliant and so they have not penalties.
+
+### Complete sequence of the transactions:
+
+* SLA1 and SLA2 duration: 1 hour (SLA1 -> [12:00-12:59], SLA2 -> [13:00-13:59])
+* KPIs: SLA1 -> KPI11 and KPI12; SLA2 -> KPI21 and KPI22 
+* PR1 and PR2 must be compliant to KPI11 and KPI21
+* PR3 and PR4 must be compliant to KPI21 and KPI22
 * Example period: 12:00-14:00
 
 <pre>
-# SLA/KPIs definition
-12:00: SLA CHECKER ON AGG SETS THE SLA AND ITS KPIS (KPI1 and KPI2) FOR [12:00-14:00]
+# SLA1 definition
+11:59: SLA CHECKER ON AGG SETS SLA1 AND ITS KPIS (KPI11 and KPI12) FOR THE PERIOD [12:00-12:59]
 
-# FIRST HOUR
-13:00: PR1 SAVES THE KPI1 VALUE RELATED TO [12:00-12:59]
-13:00: PR2 SAVES THE KPI1 VALUE RELATED TO [12:00-12:59]
-13:00: PR3 SAVES THE KPI2 VALUE RELATED TO [12:00-12:59]
-13:00: PR4 SAVES THE KPI2 VALUE RELATED TO [12:00-12:59]
+# KPI11 and KPI12 related data saving 
+13:00: PR1 SAVES THE KPI11 VALUE RELATED TO [12:00-12:59]
+13:00: PR2 SAVES THE KPI11 VALUE RELATED TO [12:00-12:59]
+13:00: PR3 SAVES THE KPI12 VALUE RELATED TO [12:00-12:59]
+13:00: PR4 SAVES THE KPI12 VALUE RELATED TO [12:00-12:59]
 
-# SECOND HOUR
-14:00: PR1 SAVES THE KPI1 VALUE RELATED TO [13:00-13:59]
-14:00: PR2 SAVES THE KPI1 VALUE RELATED TO [13:00-13:59]
-14:00: PR3 SAVES THE KPI2 VALUE RELATED TO [13:00-13:59]
-14:00: PR4 SAVES THE KPI2 VALUE RELATED TO [13:00-13:59]
+# SLA2 definition
+12:59: SLA CHECKER ON AGG SETS SLA2 AND ITS KPIS (KPI21 and KPI22) FOR THE PERIOD [13:00-13:59]
+
+# KPI21 and KPI22 related data saving
+14:00: PR1 SAVES THE KPI21 VALUE RELATED TO [13:00-13:59]
+14:00: PR2 SAVES THE KPI21 VALUE RELATED TO [13:00-13:59]
+14:00: PR3 SAVES THE KPI22 VALUE RELATED TO [13:00-13:59]
+14:00: PR4 SAVES THE KPI22 VALUE RELATED TO [13:00-13:59]
 
 # KPIs solving
-15:00: SLA PAYMENT ENGINE ON PR1 CHECKS THE KPI1 VALUES AND, IN CASE, APPLIES A PENALTY
-15:00: SLA PAYMENT ENGINE ON PR2 CHECKS THE KPI1 VALUES AND, IN CASE, APPLIES A PENALTY
-15:00: SLA PAYMENT ENGINE ON PR3 CHECKS THE KPI2 VALUES AND, IN CASE, APPLIES A PENALTY
-15:00: SLA PAYMENT ENGINE ON PR4 CHECKS THE KPI2 VALUES AND, IN CASE, APPLIES A PENALTY
+14:01: SLA PAYMENT ENGINE ON PR1 CHECKS KPI11 AND KPI21 VALUES AND, IN CASE, APPLIES A PENALTY
+14:01: SLA PAYMENT ENGINE ON PR2 CHECKS KPI11 AND KPI21 VALUES AND, IN CASE, APPLIES A PENALTY
+14:01: SLA PAYMENT ENGINE ON PR3 CHECKS KPI21 AND KPI22 VALUES AND, IN CASE, APPLIES A PENALTY
+14:01: SLA PAYMENT ENGINE ON PR4 CHECKS KPI21 AND KPI22 VALUES AND, IN CASE, APPLIES A PENALTY
 </pre>
-
