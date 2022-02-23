@@ -1,0 +1,25 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 9119
+  },
+  "cosmos": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 1317,
+    "chainName": "pm",
+    "folderSignatureFiles": "/tmp",
+    "requestEndpointHeader": "supsi-dacd-isaac/pm/pm",
+    "goRoot": "/$go/$path/$folder/go",
+    "app": "pm",
+    "token": "ect"
+  },
+  "pseudonymization": {
+    "enabled": true,
+    "pseudonomizerWebService": "$psedudonymization_service_url",
+    "timeout": 5
+  },
+  "balanceController": {
+    "minimumAmount": 1000
+  }
+}
