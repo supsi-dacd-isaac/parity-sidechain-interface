@@ -1,12 +1,13 @@
 # Importing section
-import json
 import datetime
+import json
 import requests
 import argparse
 import logging
 import time
-import numpy as np
 from classes.time_utils import TimeUtils
+from classes.influxdb_interface import InfluxDBInterface
+from classes.market_engine import MarketEngine
 
 # Main
 if __name__ == "__main__":
@@ -38,25 +39,41 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
-    dt = TimeUtils.get_dt(cfg['utils']['timeZone'],'now_s00', flag_set_minute=False)
-    dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['gridStateSetting'])
+    influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
+    dt_end_utc = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
+    dt_end_utc = dt_end_utc - datetime.timedelta(minutes=cfg['shiftBackMinutes']['forecastSaving'])
 
-    # Get the state according to the configured probabilities
-    elements = []
-    probabilities = []
-    for state in cfg['grid']['statesProbabilities'].keys():
-        elements.append(state)
-        probabilities.append(cfg['grid']['statesProbabilities'][state])
+    r = requests.get('%s/account' % url_prefix, headers=headers)
+    player_data = json.loads(r.text)
 
+    # Define the timestamp that will be the same for all the signals
+    now = datetime.datetime.now()
+    dt = now.replace(second=0)
+    dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['forecastSaving'])
+    ts = int(dt.timestamp())
+
+    # Check the grid state
+    me = MarketEngine(cfg, logger)
+    power_imp = influxdb_interface.get_dataset('PImp',  dt_end_utc)
+    power_exp = influxdb_interface.get_dataset('PExp',  dt_end_utc)
+
+    # Calculate the values
+    values = []
+    for i in range(0, cfg['forecast']['steps']):
+        values.append('%s,%s' % (int(power_imp), int(power_exp)))
     params = {
-                'timestamp': int(dt.timestamp()),
-                'grid': cfg['grid']['name'],
-                'state': np.random.choice(elements, p=probabilities),
+                'ts': ts,
+                'player': player_data['name'],
+                'values': values
              }
 
-    cmd_request = '%s/createGridState' % url_prefix
+    if me.get_forecast(me.local_account['name']) is None:
+        cmd_request = '%s/createForecast' % url_prefix
+    else:
+        cmd_request = '%s/updateForecast' % url_prefix
+
     logger.info('Request: %s' % cmd_request)
-    logger.info('Parameters: %s' % params)
+    logger.info('params: %s' % params)
     r = requests.post(cmd_request, headers=headers, json=params)
     data = json.loads(r.text)
     logger.info('Response: %s' % data)

@@ -46,6 +46,9 @@ def handler_class(pmsi_obj, cfg_obj, logger_obj):
             elif 'account' in self.path:
                 req_status = http.HTTPStatus.OK
                 req_data = json.dumps(self.pmsi.get_account_info(), indent=2)
+            elif 'energyPrices' in self.path:
+                req_status = http.HTTPStatus.OK
+                req_data = json.dumps(self.pmsi.calc_forecast_energy_prices(), indent=2)
             else:
                 req_status, req_data = self.pmsi.do_query(self.path)
 
@@ -103,7 +106,7 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
-    pmsi = PMSidechainInterface(cfg, logger)
+    pmsi = PMSidechainInterface(cfg, logger, True)
 
     # REST server thread
     HandlerClass = handler_class(pmsi, cfg, logger)

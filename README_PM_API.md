@@ -28,6 +28,8 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_kpiFeatures_** map: Container of the KPIs, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
 * **_gridState_** map: Container of the grid states
+* **_forecasts_** map: Energy forecasts
+* **_energy prices_**: Energy prices based on forecasts
   
 ## **_account_** element:
 
@@ -621,5 +623,114 @@ curl -XGET http://localhost:9119/gridState/1607601600-hogwarts
     "state": "GREEN",
     "creator": "cosmos123snape"
   }
+}
+</pre>
+
+## **_forecasts_** map:
+
+`forecasts` must be edited by `AGG` node and by the elements in `players`. This map contains the latest forecast of 
+each node that can be an actor in a LEM (i.e. `AGG` and the nodes in `players` map). 
+It is important to remark that `forecasts` contains only the latest update of the forecasts for each actor.  
+
+N.B. In the following example for simplicity reasons the saved forecasts will be 2 steps ahead. In a Parity LEM the steps should be 96. 
+
+### Creation:
+<pre>
+curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "albus", "values": ["100,12", "125,15"]}'
+curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "hermione", "values": ["250,0", "280,0"]}'
+</pre>
+
+### Update:
+<pre>
+curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "albus", "values": ["100,12", "125,15"]}'
+curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "hermione", "values": ["250,0", "280,0"]}'
+</pre>
+
+### Data retrieving of the entire map:
+
+<pre>
+curl http://localhost:9119/forecast/hermione
+{
+  "forecast": [
+    {
+      "index": "albus",
+      "ts": 1646648760,
+      "values": [
+        "100,12",
+        "125,15",
+      ],
+      "creator": "albus"
+    },
+    {
+      "index": "hermione",
+      "ts": 1646648760,
+      "values": [
+        "250,0",
+        "280,0",
+      ],
+      "creator": "hermione"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "2"
+  }
+}
+</pre>
+
+### Data retrieving of a single element
+
+<pre>
+curl http://localhost:9119/forecast/hermione
+{
+  "forecast": {
+    "index": "hermione",
+    "ts": 1646648760,
+    "values": [
+      "250,0",
+      "280,0",
+    ],
+    "creator": "hermione"
+  }
+}
+</pre>
+
+## **_energyPrices_**:
+
+`energyPrices` calculates the future energy prices based on the `forecasts` map that has to be updated periodically 
+(i.e. each quarter of hour). If not, the calculated energy prices can be erroneous and misleading.  
+
+<pre>
+dstreppa@DSTREPPA-L5510:~$ curl http://localhost:9119/energyPrices
+{
+  "lemStartingTimestamp": 1646648760,
+  "aggregatorForecasts": {
+    "index": "albus",
+    "ts": 1646648760,
+    "values": [
+        "100,12",
+        "125,15",
+    ],
+    "creator": "albus"
+  },
+  "playersForecasts": {
+    "hermione": {
+      "index": "hermione",
+      "ts": 1646648760,
+      "values": [
+        "250,0",
+        "280,0",
+      ],
+      "creator": "hermione"
+    }
+  },
+  "buyingPrices": [
+    0.2,
+    0.2
+  ],
+  "sellingPrices": [
+    0.065,
+    0.065
+  ]
 }
 </pre>

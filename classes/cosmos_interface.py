@@ -9,7 +9,7 @@ class CosmosInterface:
     """
     CosmosInterface class for Cosmos SDK 0.39x
     """
-    def __init__(self, cfg, logger):
+    def __init__(self, cfg, logger, server_pm_flag=False):
         """
         Constructor
         :param cfg: configuration dictionary
@@ -21,7 +21,13 @@ class CosmosInterface:
         self.cfg = cfg
         self.logger = logger
         self.full_path_app = '%s%sbin%s%sd' % (self.cfg['cosmos']['goRoot'], os.sep, os.sep, self.cfg['cosmos']['app'])
-        self.url = 'http://%s:%i' % (self.cfg['server']['host'], self.cfg['server']['port'])
+        self.server_pm_flag = server_pm_flag
+        if server_pm_flag is False:
+            self.url = 'http://%s:%i' % (self.cfg['server']['host'], self.cfg['server']['port'])
+        else:
+            self.url = 'http://%s:%i/%s' % (self.cfg['cosmos']['host'], self.cfg['cosmos']['port'],
+                                            self.cfg['cosmos']['requestEndpointHeader'])
+
         self.local_account = self.get_account_info()
 
     def get_account_info(self):
@@ -86,7 +92,10 @@ class CosmosInterface:
     def handle_get(self, endpoint, key=None):
         endpoint = '%s%s' % (self.url, endpoint)
         if key is None:
-            key = endpoint.split('/')[3]
+            if self.server_pm_flag is False:
+                key = endpoint.split('/')[3]
+            else:
+                key = endpoint.split('/')[3+len(self.cfg['cosmos']['requestEndpointHeader'].split('/'))]
 
         res = requests.get(endpoint)
 

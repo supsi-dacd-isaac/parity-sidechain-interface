@@ -7,7 +7,7 @@ import random
 import requests
 import time
 import utilities as u
-from classes.influxdb_interface import InfluxDBInterface
+from classes.time_utils import TimeUtils
 
 # Main
 if __name__ == "__main__":
@@ -43,8 +43,7 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     for sla in cfg['slas']:
-        dt_start, dt_end, offset = u.get_start_end(sla['duration'], InfluxDBInterface(cfg=cfg, logger=logger),
-                                                   back=True)
+        dt_start, dt_end, offset = TimeUtils.get_start_end(sla['duration'], cfg['utils']['timeZone'], back=True)
         dt_start = dt_start - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiDataSaving'])
         dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiDataSaving'])
 

@@ -6,7 +6,7 @@ import argparse
 import logging
 import datetime
 import time
-from classes.influxdb_interface import InfluxDBInterface
+from classes.time_utils import TimeUtils
 
 # Main
 if __name__ == "__main__":
@@ -39,8 +39,7 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     # Define start and end datetime
-    influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
-    dt_start = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_start = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
     if cfg['lem']['duration'][-1] == 'm':
         dt_end = dt_start + datetime.timedelta(minutes=int(cfg['lem']['duration'][0:-1]))
     elif cfg['lem']['duration'][-1] == 'h':

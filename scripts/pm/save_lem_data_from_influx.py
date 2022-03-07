@@ -5,6 +5,7 @@ import requests
 import argparse
 import logging
 import time
+from classes.time_utils import TimeUtils
 from classes.influxdb_interface import InfluxDBInterface
 from classes.market_engine import MarketEngine
 
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
-    dt_end_utc = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end_utc = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
     dt_end_utc = dt_end_utc - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemDataSaving'])
 
     r = requests.get('%s/account' % url_prefix, headers=headers)

@@ -21,5 +21,8 @@
   },
   "balanceController": {
     "minimumAmount": 1000
+  },
+  "shiftBackMinutes": {
+    "energyPriceDownload": 1
   }
 }

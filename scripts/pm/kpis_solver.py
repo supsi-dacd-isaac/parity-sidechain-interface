@@ -3,7 +3,7 @@ import datetime
 import json
 import argparse
 import logging
-from classes.influxdb_interface import InfluxDBInterface
+from classes.time_utils import TimeUtils
 from classes.slakpi_engine import SlaKpiManager
 
 import utilities as u
@@ -37,8 +37,7 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     # Define the start/end timestamps
-    influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
-    dt_end = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
     dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiSolving'])
 
     skm = SlaKpiManager(cfg, logger)
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     penalty_amount = {skm.local_account['name']: 0}
 
     for sla in cfg['slas']:
-        dt_start = u.calc_period_starting(dt_end, sla['solutionPeriod'])
+        dt_start = TimeUtils.calc_period_starting(dt_end, sla['solutionPeriod'])
 
         logger.info('SLA analysis -> prefix: %s; period: [%s - %s]' % (sla['idPrefix'],
                                                                        dt_start.strftime('%Y-%m-%d %H:%M'),
@@ -59,12 +58,12 @@ if __name__ == "__main__":
             dt_curr = dt_start
             while dt_curr < dt_end:
                 dt_kpi_start = dt_curr
-                dt_kpi_end = u.get_end_dt(dt_curr, sla['duration'])
+                dt_kpi_end = TimeUtils.get_end_dt(dt_curr, sla['duration'])
                 ts_kpi_start = int(dt_kpi_start.timestamp())
                 ts_kpi_end = int(dt_kpi_end.timestamp())
 
                 # Go to the next market
-                dt_curr = u.get_end_dt(dt_curr, sla['duration'])
+                dt_curr = TimeUtils.get_end_dt(dt_curr, sla['duration'])
 
                 # Get kpi feature
                 kpi_feature = skm.get_kpi_features(kpi['idPrefix'], ts_kpi_start, ts_kpi_end)

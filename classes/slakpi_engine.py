@@ -13,7 +13,7 @@ class SlaKpiManager(PMSidechainInterface):
         :param logger
         :type Logger
         """
-        super().__init__(cfg, logger)
+        super().__init__(cfg, logger, False)
 
     def get_kpi_features(self, idx, ts_start, ts_end):
         kpi_info = self.handle_get('/kpiFeatures/%s_%i-%s' % (idx, ts_start, ts_end))

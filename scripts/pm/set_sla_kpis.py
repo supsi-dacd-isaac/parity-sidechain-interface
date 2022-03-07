@@ -5,7 +5,8 @@ import argparse
 import logging
 import time
 import datetime
-from classes.influxdb_interface import InfluxDBInterface
+from classes.time_utils import TimeUtils
+
 import utilities as u
 
 # Main
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
     # Cycle over the configured SLAs
     for sla in cfg['slas']:
-        dt_start, dt_end, _ = u.get_start_end(sla['duration'], InfluxDBInterface(cfg=cfg, logger=logger))
+        dt_start, dt_end, _ = TimeUtils.get_start_end(sla['duration'], cfg['utils']['timeZone'])
         dt_start = dt_start - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiSetting'])
         dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['kpiSetting'])
 

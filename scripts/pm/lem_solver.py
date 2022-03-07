@@ -3,10 +3,8 @@ import json
 import datetime
 import argparse
 import logging
-from classes.influxdb_interface import InfluxDBInterface
+from classes.time_utils import TimeUtils
 from classes.market_engine import MarketEngine
-
-import utilities as u
 
 #  Main
 if __name__ == "__main__":
@@ -38,14 +36,13 @@ if __name__ == "__main__":
     logger.info('Starting program')
 
     # Define the start/end timestamps
-    influxdb_interface = InfluxDBInterface(cfg=cfg, logger=logger)
-    dt_end = influxdb_interface.get_dt('now_s00', flag_set_minute=False)
+    dt_end = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
     dt_end = dt_end - datetime.timedelta(minutes=cfg['shiftBackMinutes']['lemSolving'])
 
     me = MarketEngine(cfg, logger)
     me.set_main_sidechain_nodes_info()
 
-    dt_start = u.calc_period_starting(dt_end, cfg['lem']['solutionPeriod'])
+    dt_start = TimeUtils.calc_period_starting(dt_end, cfg['lem']['solutionPeriod'])
 
     dt_curr = dt_start
 
@@ -56,7 +53,7 @@ if __name__ == "__main__":
 
     while dt_curr < dt_end:
         dt_lem_start = dt_curr
-        dt_lem_end = u.get_end_dt(dt_curr, cfg['lem']['duration'])
+        dt_lem_end = TimeUtils.get_end_dt(dt_curr, cfg['lem']['duration'])
         ts_lem_start = int(dt_lem_start.timestamp())
         ts_lem_end = int(dt_lem_end.timestamp())
 
@@ -64,7 +61,7 @@ if __name__ == "__main__":
                                                            dt_lem_end.strftime('%Y-%m-%d %H:%M')))
 
         # Go to the next market
-        dt_curr = u.get_end_dt(dt_curr, cfg['lem']['duration'])
+        dt_curr = TimeUtils.get_end_dt(dt_curr, cfg['lem']['duration'])
 
         # Get the grid state
         grid_state = me.get_grid_state(ts_lem_start)
@@ -73,10 +70,17 @@ if __name__ == "__main__":
             logger.error('LEM was in RED state in period [%s - %s]' % (dt_lem_start, dt_lem_end))
         else:
             # Get the prosumers constituting the LEM and the aggregator
-            players, aggregator = me.get_lem_features(ts_lem_start, ts_lem_end)
+            players, aggregator, tmp_lem_pars = me.get_lem_features(ts_lem_start, ts_lem_end)
 
-            # Get the market parameters
-            lem_parameters = me.get_market_default_parameters()
+            # Check if default market parameters have to be used (i.e. the prices parameters are equal to 0)
+            if (tmp_lem_pars[1] == tmp_lem_pars[2] == tmp_lem_pars[3] == tmp_lem_pars[4] == '0') is True:
+                # Get the saved default as market parameters
+                lem_parameters = me.get_market_default_parameters()
+            else:
+                lem_parameters = {
+                                     'pbBAU': tmp_lem_pars[1], 'psBAU': tmp_lem_pars[2],
+                                     'pbP2P': tmp_lem_pars[3], 'psP2P': tmp_lem_pars[4], 'beta': tmp_lem_pars[5]
+                                 }
 
             # Get the related measures
             lem_df = me.get_lem_df(ts_lem_start, players)
