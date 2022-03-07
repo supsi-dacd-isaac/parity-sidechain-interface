@@ -276,7 +276,7 @@ class PMSidechainInterface(CosmosInterface):
 
     def calc_forecast_energy_prices(self):
         dt_lem_start = TimeUtils.get_dt(time_zone=self.cfg['utils']['timeZone'], str_dt='now_s00', flag_set_minute=False)
-        dt_lem_start = dt_lem_start - timedelta(minutes=self.cfg['shiftBackMinutes']['energyPriceDownload'])
+        dt_lem_start = dt_lem_start - timedelta(minutes=int(self.cfg['lem']['duration'][0:-1]))
         dt_lem_end = TimeUtils.get_end_dt(dt_lem_start, self.cfg['lem']['duration'])
         _, aggregator, lem_pars = self.get_lem_features(int(dt_lem_start.timestamp()), int(dt_lem_end.timestamp()))
 
