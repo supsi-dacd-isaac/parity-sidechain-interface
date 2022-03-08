@@ -333,8 +333,8 @@ class PMSidechainInterface(CosmosInterface):
         # Return the data
         return {
                     'lemStartingTimestamp': int(dt_lem_start.timestamp()),
-                    'aggregatorForecasts': forecasts_aggregator,
-                    'playersForecasts': forecasts_players,
+                    'totalEnergyConsumption': list(ec_tot),
+                    'totalEnergyProduction': list(ep_tot),
                     'buyingPrices': list(prices_buy),
                     'sellingPrices': list(prices_sell)
                }

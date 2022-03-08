@@ -678,6 +678,8 @@ curl http://localhost:9119/forecast/hermione
 }
 </pre>
 
+N.B. The `forecast.values` array contains the energy consumption/production (e.g. element `"100,12" => E_consumed=100 Wh, E_produced=12 Wh`)  
+
 ### Data retrieving of a single element
 
 <pre>
@@ -704,33 +706,21 @@ curl http://localhost:9119/forecast/hermione
 dstreppa@DSTREPPA-L5510:~$ curl http://localhost:9119/energyPrices
 {
   "lemStartingTimestamp": 1646648760,
-  "aggregatorForecasts": {
-    "index": "albus",
-    "ts": 1646648760,
-    "values": [
-        "100,12",
-        "125,15",
-    ],
-    "creator": "albus"
-  },
-  "playersForecasts": {
-    "hermione": {
-      "index": "hermione",
-      "ts": 1646648760,
-      "values": [
-        "250,0",
-        "280,0",
-      ],
-      "creator": "hermione"
-    }
-  },
+  "totalEnergyConsumption": [
+    350,
+    405
+  ],  
+  "totalEnergyProduction": [
+    12,
+    15
+  ],  
   "buyingPrices": [
-    0.2,
-    0.2
+    0.18,
+    0.16
   ],
   "sellingPrices": [
-    0.065,
-    0.065
+    0.07,
+    0.08
   ]
 }
 </pre>
