@@ -276,7 +276,8 @@ class PMSidechainInterface(CosmosInterface):
 
     def calc_forecast_energy_prices(self):
         dt_lem_start = TimeUtils.get_dt(time_zone=self.cfg['utils']['timeZone'], str_dt='now_s00', flag_set_minute=False)
-        dt_lem_start = dt_lem_start - timedelta(minutes=int(self.cfg['lem']['duration'][0:-1]))
+        delta_mins = dt_lem_start.minute % int(self.cfg['lem']['duration'][0:-1])
+        dt_lem_start = dt_lem_start - timedelta(minutes=delta_mins)
         dt_lem_end = TimeUtils.get_end_dt(dt_lem_start, self.cfg['lem']['duration'])
         _, aggregator, lem_pars = self.get_lem_features(int(dt_lem_start.timestamp()), int(dt_lem_end.timestamp()))
 
@@ -304,6 +305,7 @@ class PMSidechainInterface(CosmosInterface):
         # Calculate the total energies (cons + prod) matrices
         ec_tot = np.zeros(len(forecasts_aggregator['values']))
         ep_tot = np.zeros(len(forecasts_aggregator['values']))
+        not_available_players = dict()
         for i in range(0, len(ec_tot)):
             # Initialize with the aggregator forecasts
             (ec, ep) = forecasts_aggregator['values'][i].split(',')
@@ -312,9 +314,15 @@ class PMSidechainInterface(CosmosInterface):
 
             # Cycle over the players
             for k_player in forecasts_players.keys():
-                (ec, ep) = forecasts_players[k_player]['values'][i].split(',')
-                ec_tot[i] += float(ec)
-                ep_tot[i] += float(ep)
+                if forecasts_players[k_player] is not None:
+                    (ec, ep) = forecasts_players[k_player]['values'][i].split(',')
+                    ec_tot[i] += float(ec)
+                    ep_tot[i] += float(ep)
+                else:
+                    not_available_players[k_player] = True
+
+        for k_not_available_player in not_available_players.keys():
+            self.logger.warning('No forecast available for node %s' % k_not_available_player)
 
         # Calculate the prices matrices
         prices_buy = np.zeros(len(forecasts_aggregator['values']))
