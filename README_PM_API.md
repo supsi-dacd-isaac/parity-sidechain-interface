@@ -7,9 +7,9 @@ to read data.
 In the following a simple sidechain constituted by 4 nodes is considered as reference. The nodes play the related 
 roles in the PM application:
 
-* the DSO, called `severus`
-* the AGG, called `albus`
-* the prosumers, called `harry` and `hermione` 
+* the DSO, called `parity_dso`
+* the AGG, called `parity_aggregator`
+* the prosumers, called `parity_prosumer01` and `parity_prosumer02` 
 
 In the real cases the names have to be pseudonymized in order to preserve the privacy and be GDPR-compliant.
 
@@ -35,7 +35,7 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 
 <pre>
 curl -X GET "http://localhost:9119/account" 
-{"name": "severus", "type": "local", "address": "cosmos123snape", "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}" 
+{"name": "parity_dso", "type": "local", "address": "cosmos123parity_dso", "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}" 
 </pre>
 
 N.B.
@@ -44,7 +44,7 @@ The output of the query is related to the node account.
 ## **_balances_** element:
 
 <pre>
-curl -X GET "http://localhost:9119/balances/cosmos123granger" 
+curl -X GET "http://localhost:9119/balances/cosmos123parity_prosumer02" 
 {
   "balances": [
     {
@@ -64,7 +64,7 @@ curl -X GET "http://localhost:9119/balances/cosmos123granger"
 ### Creation:
 
 <pre>
-curl -X POST http://localhost:9119/createDso -H 'Content-Type: application/json' -d '{"idx":"severus", "address":"cosmos123snape"}' 
+curl -X POST http://localhost:9119/createDso -H 'Content-Type: application/json' -d '{"idx":"parity_dso", "address":"cosmos123parity_dso"}' 
 </pre>
 
 ### Data retrieving:
@@ -73,9 +73,9 @@ curl -X POST http://localhost:9119/createDso -H 'Content-Type: application/json'
 curl -X GET "http://localhost:9119/dso" 
 {
   "Dso": {
-    "idx": "severus",
-    "address": "cosmos123snape",
-    "creator": "cosmos123snape"
+    "idx": "parity_dso",
+    "address": "cosmos123parity_dso",
+    "creator": "cosmos123parity_dso"
   }
 }
 </pre>
@@ -87,7 +87,7 @@ curl -X GET "http://localhost:9119/dso"
 `aggregator` must be created by `DSO` node.
 
 <pre>
-curl -X POST http://localhost:9119/createAggregator -H 'Content-Type: application/json' -d '{"idx":"albus", "address":"cosmos123dumbledore"}' 
+curl -X POST http://localhost:9119/createAggregator -H 'Content-Type: application/json' -d '{"idx":"parity_aggregator", "address":"cosmos123parity_aggregator"}' 
 </pre>
 
 ### Data retrieving:
@@ -96,9 +96,9 @@ curl -X POST http://localhost:9119/createAggregator -H 'Content-Type: applicatio
 curl -X GET "http://localhost:9119/aggregator" 
 {
   "Dso": {
-    "idx": "albus",
-    "address": "cosmos123dumbledore",
-    "creator": "cosmos123snape"
+    "idx": "parity_aggregator",
+    "address": "cosmos123parity_aggregator",
+    "creator": "cosmos123parity_dso"
   }
 }
 </pre>
@@ -110,10 +110,10 @@ curl -X GET "http://localhost:9119/aggregator"
 ### Elements creation (DSO, AGG and prosumers):
 
 <pre>
-curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"severus", "address":"cosmos123snape", "role": "dso"}' 
-curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"albus", "address":"cosmos123dumbledore", "role": "aggregator"}' 
-curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"hermione", "address":"cosmos123granger", "role": "prosumer"}' 
-curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"harry", "address":"cosmos123potter", "role": "prosumer"}' 
+curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"parity_dso", "address":"cosmos123parity_dso", "role": "dso"}' 
+curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"parity_aggregator", "address":"cosmos123parity_aggregator", "role": "aggregator"}' 
+curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"parity_prosumer02", "address":"cosmos123parity_prosumer02", "role": "prosumer"}' 
+curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"parity_prosumer01", "address":"cosmos123parity_prosumer01", "role": "prosumer"}' 
 </pre>
 
 Where:
@@ -137,7 +137,7 @@ curl -X GET "http://localhost:9119/marketOperator"
   "Dso": {
     "idx": "rubeus",
     "address": "cosmos123hagrid",
-    "creator": "cosmos123snape"
+    "creator": "cosmos123parity_dso"
   }
 }
 </pre>
@@ -166,7 +166,7 @@ curl -X GET "http://localhost:9119/defaultLemPars"
       "pbP2P": "15.0",
       "psP2P": "7.0",
       "beta": "0.2",
-      "creator": "cosmos123snape"
+      "creator": "cosmos123parity_dso"
     }
   ],
   "pagination": {
@@ -189,7 +189,7 @@ curl -X GET "http://localhost:9119/defaultLemPars/GREEN"
       "pbP2P": "15.0",
       "psP2P": "7.0",
       "beta": "0.2",
-      "creator": "cosmos123snape"
+      "creator": "cosmos123parity_dso"
     }
   ],
   "pagination": {
@@ -207,9 +207,9 @@ curl -X GET "http://localhost:9119/defaultLemPars/GREEN"
 
 <pre>
 curl -X POST http://localhost:9119/createLem -H 'Content-Type: application/json' \
-            -d '{"start":1608897600, "end":1608898500, "aggregator": "albus", "state": "ACTIVE", "marketParameters": [0.2, 0.065, 0.14, 0.08, 0], "players": ["harry", "hermione"]}'
+            -d '{"start":1608897600, "end":1608898500, "aggregator": "parity_aggregator", "state": "ACTIVE", "marketParameters": [0.2, 0.065, 0.14, 0.08, 0], "players": ["parity_prosumer01", "parity_prosumer02"]}'
 curl -X POST http://localhost:9119/createLem -H 'Content-Type: application/json' \
-            -d '{"start":1608984000, "end":1608984900, "aggregator": "albus", "state": "ACTIVE", "marketParameters": [0.24, 0.045, 0.14, 0.08, 0.025], "players": ["harry", "hermione"]}'
+            -d '{"start":1608984000, "end":1608984900, "aggregator": "parity_aggregator", "state": "ACTIVE", "marketParameters": [0.24, 0.045, 0.14, 0.08, 0.025], "players": ["parity_prosumer01", "parity_prosumer02"]}'
 </pre>
 
 Where:
@@ -227,7 +227,7 @@ curl -X GET "http://localhost:9119/lem"
 {
   "lem": [
     {
-      "index": "1608897600-1608898500-albus",
+      "index": "1608897600-1608898500-parity_aggregator",
       "start": 1608897600,
       "end": 1608898500,
       "params": [
@@ -239,13 +239,13 @@ curl -X GET "http://localhost:9119/lem"
         "0"
       ],
       "players": [
-        "harry",
-        "hermione"
+        "parity_prosumer01",
+        "parity_prosumer02"
       ],
-      "creator": "cosmos123dumbledore"
+      "creator": "cosmos123parity_aggregator"
     },
     {
-      "index": "1608984000-1608984900-albus",
+      "index": "1608984000-1608984900-parity_aggregator",
       "start": 1608984000,
       "end": 1608984900,
       "params": [
@@ -257,10 +257,10 @@ curl -X GET "http://localhost:9119/lem"
         "0.025"
       ],
       "players": [
-        "harry",
-        "hermione"
+        "parity_prosumer01",
+        "parity_prosumer02"
       ],
-      "creator": "cosmos123dumbledore"
+      "creator": "cosmos123parity_aggregator"
     }
   ],
   "pagination": {
@@ -277,9 +277,9 @@ the only information that `AGG` must know and set on the sidechain to have a val
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus" 
+curl -X GET "http://localhost:9119/lem/1608984000-1608984900-parity_aggregator" 
 {
-  "index": "1608984000-1608984900-albus",
+  "index": "1608984000-1608984900-parity_aggregator",
   "start": 1608984000,
   "end": 1608984900,
   "params": [
@@ -291,10 +291,10 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus"
     "0.025"
   ],
   "players": [
-    "harry",
-    "hermione"
+    "parity_prosumer01",
+    "parity_prosumer02"
   ],
-  "creator": "cosmos123dumbledore"
+  "creator": "cosmos123parity_aggregator"
 }
 </pre>
 
@@ -308,7 +308,7 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-albus"
 
 <pre>
 curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
-             -d '{"player":"hermione", "timestamp": 1608984000, "powerConsumptionMeasure": 2345.7, \ 
+             -d '{"player":"parity_prosumer02", "timestamp": 1608984000, "powerConsumptionMeasure": 2345.7, \ 
                   "powerProductionMeasure": 1462.3, "powerConsumptionForecast": "None", "powerProductionForecast": "None"}'
 </pre>
 
@@ -316,7 +316,7 @@ curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: applicatio
 
 <pre>
 curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
-             -d '{"player":"hermione", "timestamp": 1608984000, \
+             -d '{"player":"parity_prosumer02", "timestamp": 1608984000, \
                   "powerConsumptionMeasure": 2345.7, "powerProductionMeasure": 1462.3, \ 
                   "powerConsumptionForecast": "2250,2400,1600,1750", "powerProductionForecast": "1400,1600,1800,1800"}'
 </pre>
@@ -337,25 +337,25 @@ curl -X GET "http://localhost:9119/lemDataset"
 {
   [
     {
-      "index": "harry-1608984000",
-      "player": "harry",
+      "index": "parity_prosumer01-1608984000",
+      "player": "parity_prosumer01",
       "timestamp": 1608984000,
       "pconsMeasure": "3657.3",
       "pprodMeasure": "0.0",
       "pconsForecast": "None",
       "pprodForecast": "None",
-      "creator": "cosmos123potter"
+      "creator": "cosmos123parity_prosumer01"
     }
     },
     {
-      "index": "hermione-1608984000",
-      "player": "hermione",
+      "index": "parity_prosumer02-1608984000",
+      "player": "parity_prosumer02",
       "timestamp": 1608984000,
       "pconsMeasure": "2345.7",
       "pprodMeasure": "1462.3",
       "pconsForecast": "None",
       "pprodForecast": "None",
-      "creator": "cosmos123granger"
+      "creator": "cosmos123parity_prosumer02"
     }
     }
   ],
@@ -369,17 +369,17 @@ curl -X GET "http://localhost:9119/lemDataset"
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/lemMeasure/hermione-1608984000"
+curl -X GET "http://localhost:9119/lemMeasure/parity_prosumer02-1608984000"
 {
   "lemMeasure": {
-      "index": "hermione-1608984000",
-      "player": "hermione",
+      "index": "parity_prosumer02-1608984000",
+      "player": "parity_prosumer02",
       "timestamp": 1608984000,
       "pconsMeasure": "2345.7",
       "pprodMeasure": "1462.3",
       "pconsForecast": "None",
       "pprodForecast": "None",
-      "creator": "cosmos123granger"
+      "creator": "cosmos123parity_prosumer02"
   }
 }
 </pre>
@@ -409,13 +409,13 @@ curl -X GET "http://localhost:9119/sla"
       "index": "comfort01",
       "start": 1607601600,
       "end": 1607688000,
-      "creator": "cosmos123dumbledore"
+      "creator": "cosmos123parity_aggregator"
     },
     {
       "index": "comfort02",
       "start": 1607601600,
       "end": 1607688000,
-      "creator": "cosmos123dumbledore"
+      "creator": "cosmos123parity_aggregator"
     }
   ],
   "pagination": {
@@ -434,7 +434,7 @@ curl -X GET "http://localhost:9119/sla/comfort01"
     "index": "comfort01",
     "start": 1607601600,
     "end": 1607688000,
-    "creator": "cosmos123dumbledore"
+    "creator": "cosmos123parity_aggregator"
   }
 }
 </pre>
@@ -447,7 +447,7 @@ curl -X GET "http://localhost:9119/sla/comfort01"
 
 <pre>
 curl -X POST http://localhost:9119/createKpi -H 'Content-Type: application/json' \
-            -d '{"idx":"temp_too_high", "idxSla":"comfort01", "rule": "gt", "limit": 24.5, "measureUnit": "°C", "penalty": 120, "players": ["harry", "hermione"]}'
+            -d '{"idx":"temp_too_high", "idxSla":"comfort01", "rule": "gt", "limit": 24.5, "measureUnit": "°C", "penalty": 120, "players": ["parity_prosumer01", "parity_prosumer02"]}'
 </pre>
 
 Where:
@@ -474,10 +474,10 @@ curl -X GET "http://localhost:9119/kpiFeatures"
       "mu": "°C",
       "penalty": 120,
       "players": [
-        "harry",
-        "hermione"
+        "parity_prosumer01",
+        "parity_prosumer02"
       ],
-      "creator": "cosmos123dumbledore"
+      "creator": "cosmos123parity_aggregator"
     }
   ],
   "pagination": {
@@ -500,10 +500,10 @@ curl -X GET "http://localhost:9119/kpiFeatures/temp_too_high"
     "mu": "°C",
     "penalty": 120,
     "players": [ 
-      "harry",
-      "hermione"
+      "parity_prosumer01",
+      "parity_prosumer02"
     ],
-    "creator": "cosmos123dumbledore"
+    "creator": "cosmos123parity_aggregator"
   }
 }
 </pre>
@@ -517,9 +517,9 @@ curl -X GET "http://localhost:9119/kpiFeatures/temp_too_high"
 
 <pre>
 curl -X POST http://localhost:9119/createKpiMeasure -H 'Content-Type: application/json' 
-            -d '{"player":"hermione", "kpi":"temp_too_high", "timestamp": 1607601600, "value": 23.9, "measureUnit": "°C"}'
+            -d '{"player":"parity_prosumer02", "kpi":"temp_too_high", "timestamp": 1607601600, "value": 23.9, "measureUnit": "°C"}'
 curl -X POST http://localhost:9119/createKpiMeasure -H 'Content-Type: application/json' 
-            -d '{"player":"harry", "kpi":"temp_too_high", "timestamp": 1607601600, "value": 24.7, "measureUnit": "°C"}'
+            -d '{"player":"parity_prosumer01", "kpi":"temp_too_high", "timestamp": 1607601600, "value": 24.7, "measureUnit": "°C"}'
 </pre>
 
 ### Data retrieving of the entire map:
@@ -529,22 +529,22 @@ curl -X GET "http://localhost:9119/kpiMeasure"
 {
   "kpiMeasure": [
     {
-      "index": "hermione-temp_too_high-1607601600",
-      "player": "hermione",
+      "index": "parity_prosumer02-temp_too_high-1607601600",
+      "player": "parity_prosumer02",
       "kpi": "temp_too_high",
       "timestamp": 1607601600,
       "value": "23.9",
       "mu": "°C",
-      "creator": "cosmos123granger"
+      "creator": "cosmos123parity_prosumer02"
     },
     {
-      "index": "harry-temp_too_high-1607601600",
-      "player": "harry",
+      "index": "parity_prosumer01-temp_too_high-1607601600",
+      "player": "parity_prosumer01",
       "kpi": "temp_too_high",
       "timestamp": 1607601600,
       "value": "24.7",
       "mu": "°C",
-      "creator": "cosmos123potter"
+      "creator": "cosmos123parity_prosumer01"
     }
   ],
   "pagination": {
@@ -557,16 +557,16 @@ curl -X GET "http://localhost:9119/kpiMeasure"
 ### Data retrieving of a single element
 
 <pre>
-curl -X GET "http://localhost:9119/kpiMeasure/hermione-temp_too_high-1607601600"
+curl -X GET "http://localhost:9119/kpiMeasure/parity_prosumer02-temp_too_high-1607601600"
 {
   "kpiMeasure": {
-    "index": "hermione-temp_too_high-1607601600",
-    "player": "hermione",
+    "index": "parity_prosumer02-temp_too_high-1607601600",
+    "player": "parity_prosumer02",
     "kpi": "temp_too_high",
     "timestamp": 1607601600,
     "value": "23.9",
     "mu": "°C",
-    "creator": "cosmos123granger"
+    "creator": "cosmos123parity_prosumer02"
   }
 }
 </pre>
@@ -594,14 +594,14 @@ curl -X GET http://localhost:9119/gridState
       "grid": "hogwarts",
       "timestamp": 1607601600,
       "state": "GREEN",
-      "creator": "cosmos123snape"
+      "creator": "cosmos123parity_dso"
     },
     {
       "index": "1641830160-hogwarts",
       "grid": "hogwarts",
       "timestamp": 1641830160,
       "state": "YELLOW",
-      "creator": "cosmos123snape"
+      "creator": "cosmos123parity_dso"
     }
   ],
   "pagination": {
@@ -621,7 +621,7 @@ curl -XGET http://localhost:9119/gridState/1607601600-hogwarts
     "grid": "hogwarts",
     "timestamp": 1607601600,
     "state": "GREEN",
-    "creator": "cosmos123snape"
+    "creator": "cosmos123parity_dso"
   }
 }
 </pre>
@@ -636,39 +636,39 @@ N.B. In the following example for simplicity reasons the saved forecasts will be
 
 ### Creation:
 <pre>
-curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "albus", "values": ["100,12", "125,15"]}'
-curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "hermione", "values": ["250,0", "280,0"]}'
+curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "parity_aggregator", "values": ["100,12", "125,15"]}'
+curl -X POST http://localhost:9119/createForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "parity_prosumer02", "values": ["250,0", "280,0"]}'
 </pre>
 
 ### Update:
 <pre>
-curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "albus", "values": ["100,12", "125,15"]}'
-curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "hermione", "values": ["250,0", "280,0"]}'
+curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "parity_aggregator", "values": ["100,12", "125,15"]}'
+curl -X POST http://localhost:9119/updateForecast -H 'Content-Type: application/json' -d '{"ts":"1646648760", "player": "parity_prosumer02", "values": ["250,0", "280,0"]}'
 </pre>
 
 ### Data retrieving of the entire map:
 
 <pre>
-curl http://localhost:9119/forecast/hermione
+curl http://localhost:9119/forecast/parity_prosumer02
 {
   "forecast": [
     {
-      "index": "albus",
+      "index": "parity_aggregator",
       "ts": 1646648760,
       "values": [
         "100,12",
         "125,15",
       ],
-      "creator": "albus"
+      "creator": "parity_aggregator"
     },
     {
-      "index": "hermione",
+      "index": "parity_prosumer02",
       "ts": 1646648760,
       "values": [
         "250,0",
         "280,0",
       ],
-      "creator": "hermione"
+      "creator": "parity_prosumer02"
     }
   ],
   "pagination": {
@@ -683,16 +683,16 @@ N.B. The `forecast.values` array contains the energy consumption/production (e.g
 ### Data retrieving of a single element
 
 <pre>
-curl http://localhost:9119/forecast/hermione
+curl http://localhost:9119/forecast/parity_prosumer02
 {
   "forecast": {
-    "index": "hermione",
+    "index": "parity_prosumer02",
     "ts": 1646648760,
     "values": [
       "250,0",
       "280,0",
     ],
-    "creator": "hermione"
+    "creator": "parity_prosumer02"
   }
 }
 </pre>
