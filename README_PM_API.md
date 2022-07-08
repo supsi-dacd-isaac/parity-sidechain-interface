@@ -28,8 +28,8 @@ In the real cases the names have to be pseudonymized in order to preserve the pr
 * **_kpiFeatures_** map: Container of the KPIs, each of them is linked to a SLA
 * **_kpiMeasure_** map: Container of the time series related to a KPI
 * **_gridState_** map: Container of the grid states
-* **_forecasts_** map: Energy forecasts
-* **_energy prices_**: Energy prices based on forecasts
+* **_forecast_** map: Energy forecast
+* **_energy prices_**: Energy prices based on forecast
   
 ## **_account_** element:
 
@@ -304,21 +304,10 @@ curl -X GET "http://localhost:9119/lem/1608984000-1608984900-parity_aggregator"
 
 ### Creation:
 
-* **Without forecasts saving:**
-
 <pre>
 curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
              -d '{"player":"parity_prosumer02", "timestamp": 1608984000, "powerConsumptionMeasure": 2345.7, \ 
                   "powerProductionMeasure": 1462.3, "powerConsumptionForecast": "None", "powerProductionForecast": "None"}'
-</pre>
-
-* **With saving of the forecasts related to the 4 next steps:**
-
-<pre>
-curl -X POST http://localhost:9119/createLemDataset -H 'Content-Type: application/json' \ 
-             -d '{"player":"parity_prosumer02", "timestamp": 1608984000, \
-                  "powerConsumptionMeasure": 2345.7, "powerProductionMeasure": 1462.3, \ 
-                  "powerConsumptionForecast": "2250,2400,1600,1750", "powerProductionForecast": "1400,1600,1800,1800"}'
 </pre>
 
 
@@ -626,13 +615,13 @@ curl -XGET http://localhost:9119/gridState/1607601600-hogwarts
 }
 </pre>
 
-## **_forecasts_** map:
+## **_forecast_** map:
 
-`forecasts` must be edited by `AGG` node and by the elements in `players`. This map contains the latest forecast of 
+`forecast` must be edited by `AGG` node and by the elements in `players`. This map contains the latest forecast of 
 each node that can be an actor in a LEM (i.e. `AGG` and the nodes in `players` map). 
-It is important to remark that `forecasts` contains only the latest update of the forecasts for each actor.  
+It is important to remark that `forecast` contains only the latest update of the forecast for each actor.  
 
-N.B. In the following example for simplicity reasons the saved forecasts will be 2 steps ahead. In a Parity LEM the steps should be 96. 
+N.B. In the following example for simplicity reasons the saved forecast will be 2 steps ahead. In a Parity LEM the steps should be 96. 
 
 ### Creation:
 <pre>
@@ -699,7 +688,7 @@ curl http://localhost:9119/forecast/parity_prosumer02
 
 ## **_energyPrices_**:
 
-`energyPrices` calculates the future energy prices based on the `forecasts` map that has to be updated periodically 
+`energyPrices` calculates the future energy prices based on the `forecast` map that has to be updated periodically 
 (i.e. each quarter of hour). If not, the calculated energy prices can be erroneous and misleading.  
 
 <pre>
