@@ -116,8 +116,48 @@ curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/js
 curl -X POST http://localhost:9119/createPlayer -H 'Content-Type: application/json' -d '{"idx":"parity_prosumer01", "address":"cosmos123parity_prosumer01", "role": "prosumer"}' 
 </pre>
 
-Where:
-* `role`: Role of the player in the LEMs (`dso | aggregator | prosumer`)
+### Data retrieving of the entire map:
+
+<pre>
+curl -X GET "http://localhost:9119/player" 
+{
+  "player": [
+    {
+      "index": "parity_prosumer01",
+      "idx": "parity_prosumer01",
+      "address": "cosmos123parity_prosumer01",
+      "role": "prosumer",
+      "creator": "cosmos123parity_dso"
+    },
+    {
+      "index": "parity_prosumer02",
+      "idx": "parity_prosumer02",
+      "address": "cosmos123parity_prosumer02",
+      "role": "prosumer",
+      "creator": "cosmos123parity_dso"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "1"
+  }
+}
+</pre>
+
+### Data retrieving of a single element:
+
+<pre>
+curl -X GET "http://localhost:9119/player/parity_prosumer01" 
+{
+  "player": {
+        "index": "parity_prosumer01",
+        "idx": "parity_prosumer01",
+        "address": "cosmos123parity_prosumer01",
+        "role": "prosumer",
+        "creator": "cosmos123parity_dso"
+    }
+}
+</pre>
 
 ## **_marketOperator_** element:
 
@@ -126,7 +166,7 @@ Where:
 ### Creation:
 
 <pre>
-curl -X POST http://localhost:9119/createMarketOperator -H 'Content-Type: application/json' -d '{"idx":"rubeus", "address":"cosmos123hagrid"}' 
+curl -X POST http://localhost:9119/createMarketOperator -H 'Content-Type: application/json' -d '{"idx":"mo", "address":"cosmos123mo"}' 
 </pre>
 
 ### Data retrieving:
@@ -135,8 +175,8 @@ curl -X POST http://localhost:9119/createMarketOperator -H 'Content-Type: applic
 curl -X GET "http://localhost:9119/marketOperator" 
 {
   "Dso": {
-    "idx": "rubeus",
-    "address": "cosmos123hagrid",
+    "idx": "mo",
+    "address": "cosmos123mo",
     "creator": "cosmos123parity_dso"
   }
 }
