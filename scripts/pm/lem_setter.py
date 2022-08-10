@@ -7,6 +7,7 @@ import logging
 import datetime
 import time
 from classes.time_utils import TimeUtils
+from classes.pm_sidechain_interface import PMSidechainInterface
 
 # Main
 if __name__ == "__main__":
@@ -38,6 +39,8 @@ if __name__ == "__main__":
 
     logger.info('Starting program')
 
+    pmsi = PMSidechainInterface(cfg, logger, True)
+
     # Define start and end datetime
     dt_start = TimeUtils.get_dt(cfg['utils']['timeZone'], 'now_s00', flag_set_minute=False)
     if cfg['lem']['duration'][-1] == 'm':
@@ -54,13 +57,20 @@ if __name__ == "__main__":
     res = requests.get('%s/aggregator' % cfg['sidechainRestApi'])
     aggregator_id = json.loads(res.text)['Aggregator']['idx']
 
+    if cfg['pseudonymization']['enabled'] is True:
+        players = []
+        for player in cfg['lem']['players']:
+            players.append(pmsi.get_idx(player))
+    else:
+        players = cfg['lem']['players']
+
     params = {
         'start': int(dt_start.timestamp()),
         'end': int(dt_end.timestamp()),
         'aggregator': aggregator_id,
         'state': 'ACTIVE',
         'marketParameters': [0, 0, 0, 0, 0],
-        'players': cfg['lem']['players']
+        'players': players
     }
 
     cmd_request = '%s/createLem' % url_prefix
