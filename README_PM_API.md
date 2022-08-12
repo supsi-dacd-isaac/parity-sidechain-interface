@@ -43,6 +43,7 @@ The output of the query is related to the node account.
 
 ## **_balances_** element:
 
+## Available tokens:
 <pre>
 curl -X GET "http://localhost:9119/balances/cosmos123parity_prosumer02" 
 {
@@ -50,14 +51,31 @@ curl -X GET "http://localhost:9119/balances/cosmos123parity_prosumer02"
     {
       "denom": "ect",
       "amount": "1000000"
+    },
+    {
+      "denom": "stake",
+      "amount": "100000000"
     }
   ],
   "pagination": {
     "next_key": null,
-    "total": "1"
+    "total": "2"
   }
 } 
 </pre>
+
+## **_ECT_** token:
+<pre>
+curl -X GET "http://localhost:9119/balances/cosmos123parity_prosumer02/ect" 
+{
+  "balance": {
+    "denom": "ect",
+    "amount": "1000000"
+  }
+} 
+</pre>
+
+N.B. _ECT_ (Energy Community Token) is the token used in the PARTITY LEMs and SLAs. 
 
 ## **_dso_** element:
 
