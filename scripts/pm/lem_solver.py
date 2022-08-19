@@ -57,8 +57,8 @@ if __name__ == "__main__":
         ts_lem_start = int(dt_lem_start.timestamp())
         ts_lem_end = int(dt_lem_end.timestamp())
 
-        logger.info('LEM analysis -> period: [%s - %s]' % (dt_lem_start.strftime('%Y-%m-%d %H:%M'),
-                                                           dt_lem_end.strftime('%Y-%m-%d %H:%M')))
+        logger.info('Starting LEM analysis -> period: [%s - %s]' % (dt_lem_start.strftime('%Y-%m-%d %H:%M'),
+                                                                    dt_lem_end.strftime('%Y-%m-%d %H:%M')))
 
         # Go to the next market
         dt_curr = TimeUtils.get_end_dt(dt_curr, cfg['lem']['duration'])
@@ -66,27 +66,31 @@ if __name__ == "__main__":
         # Get the grid state
         grid_state = me.get_grid_state(ts_lem_start)
 
-        if grid_state == me.GRIDSTATE_RED:
-            logger.error('LEM was in RED state in period [%s - %s]' % (dt_lem_start, dt_lem_end))
-        else:
+        logger.info('Grid state in period [%s - %s]: %s' % (dt_lem_start, dt_lem_end, grid_state))
+        if grid_state != me.GRIDSTATE_RED:
             # Get the prosumers constituting the LEM and the aggregator
             players, aggregator, tmp_lem_pars = me.get_lem_features(ts_lem_start, ts_lem_end)
+            if players is not None:
+                # Check if default market parameters have to be used (i.e. the prices parameters are equal to 0)
+                if (tmp_lem_pars[1] == tmp_lem_pars[2] == tmp_lem_pars[3] == tmp_lem_pars[4] == '0') is True:
+                    # Get the saved default as market parameters
+                    lem_parameters = me.get_market_default_parameters()
+                else:
+                    lem_parameters = {
+                                         'pbBAU': tmp_lem_pars[1], 'psBAU': tmp_lem_pars[2],
+                                         'pbP2P': tmp_lem_pars[3], 'psP2P': tmp_lem_pars[4], 'beta': tmp_lem_pars[5]
+                                     }
 
-            # Check if default market parameters have to be used (i.e. the prices parameters are equal to 0)
-            if (tmp_lem_pars[1] == tmp_lem_pars[2] == tmp_lem_pars[3] == tmp_lem_pars[4] == '0') is True:
-                # Get the saved default as market parameters
-                lem_parameters = me.get_market_default_parameters()
+                # Get the related measures
+                lem_df = me.get_lem_df(ts_lem_start, players)
+
+                # Solve the market
+                players_balance = me.solve_single_lem(players_balance, lem_df, lem_parameters)
             else:
-                lem_parameters = {
-                                     'pbBAU': tmp_lem_pars[1], 'psBAU': tmp_lem_pars[2],
-                                     'pbP2P': tmp_lem_pars[3], 'psP2P': tmp_lem_pars[4], 'beta': tmp_lem_pars[5]
-                                 }
-
-            # Get the related measures
-            lem_df = me.get_lem_df(ts_lem_start, players)
-
-            # Solve the market
-            players_balance = me.solve_single_lem(players_balance, lem_df, lem_parameters)
+                logger.warning('LEM [%s - %s] features not properly saved, it will be skipped' % (dt_lem_start,
+                                                                                                  dt_lem_end))
+        logger.info('Ending LEM analysis -> period: [%s - %s]' % (dt_lem_start.strftime('%Y-%m-%d %H:%M'),
+                                                                  dt_lem_end.strftime('%Y-%m-%d %H:%M')))
 
     # Finally move tokens
     logger.info('Balance: %s' % players_balance)

@@ -21,20 +21,27 @@ class MarketEngine(PMSidechainInterface):
 
     def get_lem_df(self, ts, players):
         lem_raw_data = []
-        for player in players:
-            data = self.handle_get('/lemDataset/%s-%i' % (player, ts))
-            self.logger.info('Downloaded data %s' % data)
-            if data is not None:
-                lem_raw_data.append({'player': data['player'],
-                                     'ec': self.power_to_energy(float(data['pconsMeasure']),
-                                                                int(self.cfg['lem']['duration'][0:-1]),
-                                                                self.cfg['lem']['duration'][-1],
-                                                                self.cfg['lem']['powerToKW']),
-                                     'ep': self.power_to_energy(float(data['pprodMeasure']),
-                                                                int(self.cfg['lem']['duration'][0:-1]),
-                                                                self.cfg['lem']['duration'][-1],
-                                                                self.cfg['lem']['powerToKW'])
-                                     })
+        if len(players) > 0:
+            for player in players:
+                endpoint = '/lemDataset/%s-%i' % (player, ts)
+                self.logger.info('GET: %s' % endpoint)
+                data = self.handle_get(endpoint)
+                self.logger.info('Downloaded data %s' % data)
+                if data is not None:
+                    lem_raw_data.append({'player': data['player'],
+                                         'ec': self.power_to_energy(float(data['pconsMeasure']),
+                                                                    int(self.cfg['lem']['duration'][0:-1]),
+                                                                    self.cfg['lem']['duration'][-1],
+                                                                    self.cfg['lem']['powerToKW']),
+                                         'ep': self.power_to_energy(float(data['pprodMeasure']),
+                                                                    int(self.cfg['lem']['duration'][0:-1]),
+                                                                    self.cfg['lem']['duration'][-1],
+                                                                    self.cfg['lem']['powerToKW'])
+                                         })
+                else:
+                    self.logger.warning('No data available on endpoint %s' % endpoint)
+        else:
+            self.logger.warning('No players available for this LEM')
 
         df = pd.DataFrame(lem_raw_data, columns=['player', 'ec', 'ep'])
         return df.set_index('player')

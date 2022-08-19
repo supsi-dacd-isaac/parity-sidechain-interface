@@ -33,12 +33,21 @@ class Pseudonymizer:
         return addrs
 
     def get_pseudonym(self, plain_text):
-        res = requests.get(url='%s=%s' % (self.cfg['pseudonymization']['pseudonomizerWebService'], plain_text),
-                           timeout=self.cfg['pseudonymization']['timeout'])
+        url = '%s=%s' % (self.cfg['pseudonymization']['pseudonomizerWebService'], plain_text)
+        self.logger.info('GET: %s' % url)
+        res = requests.get(url=url, timeout=self.cfg['pseudonymization']['timeout'])
 
-        if res.status_code == http.HTTPStatus.OK:
-            return json.loads(res.text)['pseudonym']
-        else:
+        try:
+            if res.status_code == http.HTTPStatus.OK:
+                pseudo = json.loads(res.text)['pseudonym']
+                self.logger.info('Pseudonym acquired (%s)' % pseudo)
+                return pseudo
+            else:
+                self.logger.error('Error retrieving the pseudonym from %s, returned status code = %i' % (url, res.status_code))
+                return None
+        except Exception as e:
+            self.logger.error('Unable to get pseudonym from %s' % url)
+            self.logger.error('EXCEPTION: %s' % str(e))
             return None
 
     def get_pseudonyms(self):

@@ -60,33 +60,39 @@ if __name__ == "__main__":
     if cfg['pseudonymization']['enabled'] is True:
         players = []
         for player in cfg['lem']['players']:
-            players.append(pmsi.get_idx(player))
+            candidate = pmsi.get_idx(player)
+            time.sleep(0.5)
+            if candidate is not None:
+                players.append(candidate)
     else:
         players = cfg['lem']['players']
 
-    params = {
-        'start': int(dt_start.timestamp()),
-        'end': int(dt_end.timestamp()),
-        'aggregator': aggregator_id,
-        'state': 'ACTIVE',
-        'marketParameters': [0, 0, 0, 0, 0],
-        'players': players
-    }
+    if len(players) > 0:
+        params = {
+            'start': int(dt_start.timestamp()),
+            'end': int(dt_end.timestamp()),
+            'aggregator': aggregator_id,
+            'state': 'ACTIVE',
+            'marketParameters': [0, 0, 0, 0, 0],
+            'players': players
+        }
 
-    cmd_request = '%s/createLem' % url_prefix
-    logger.info('Request: %s' % cmd_request)
-    logger.info('Parameters: %s' % params)
-    r = requests.post(cmd_request, headers=headers, json=params)
-    data = json.loads(r.text)
-    logger.info('Response: %s' % data)
+        cmd_request = '%s/createLem' % url_prefix
+        logger.info('Request: %s' % cmd_request)
+        logger.info('Parameters: %s' % params)
+        r = requests.post(cmd_request, headers=headers, json=params)
+        data = json.loads(r.text)
+        logger.info('Response: %s' % data)
 
-    # Wait some seconds to be sure that the transaction has been handled
-    time.sleep(cfg['utils']['sleepBetweenTransactions'])
+        # Wait some seconds to be sure that the transaction has been handled
+        time.sleep(cfg['utils']['sleepBetweenTransactions'])
 
-    check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
-    logger.info('Check tx: %s' % check_tx_url)
-    r = requests.get(check_tx_url)
-    data = json.loads(r.text)
-    logger.info('Response: %s' % data)
+        check_tx_url = '%s/checkTx/%s' % (url_prefix, data['tx_hash'])
+        logger.info('Check tx: %s' % check_tx_url)
+        r = requests.get(check_tx_url)
+        data = json.loads(r.text)
+        logger.info('Response: %s' % data)
+    else:
+        logger.warning('No players available for this LEM')
 
     logger.info('Ending program')

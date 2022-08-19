@@ -224,8 +224,13 @@ class PMSidechainInterface(CosmosInterface):
 
     def get_lem_features(self, ts_start, ts_end):
         aggregator = self.get_aggregator()
-        lem_info = self.handle_get('/lem/%i-%i-%s' % (ts_start, ts_end, aggregator['idx']))
-        return lem_info['players'], aggregator, lem_info['params']
+        endpoint = '/lem/%i-%i-%s' % (ts_start, ts_end, aggregator['idx'])
+        self.logger.info('GET: %s' % endpoint)
+        lem_info = self.handle_get(endpoint)
+        if lem_info is None:
+            return None, aggregator, None
+        else:
+            return lem_info['players'], aggregator, lem_info['params']
 
     def get_market_default_parameters(self):
         if self.grid_state is not None:
