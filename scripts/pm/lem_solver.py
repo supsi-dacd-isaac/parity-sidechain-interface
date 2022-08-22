@@ -48,7 +48,8 @@ if __name__ == "__main__":
 
     # Get all the available prosumers
     players_balance = dict()
-    for prosumer in me.get_all_available_prosumers():
+    available_prosumers, _  = me.get_all_available_prosumers()
+    for prosumer in     available_prosumers:
         players_balance[prosumer] = 0
 
     while dt_curr < dt_end:

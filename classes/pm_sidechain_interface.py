@@ -184,21 +184,27 @@ class PMSidechainInterface(CosmosInterface):
     def get_dso(self):
         return self.handle_get('/dso', 'Dso')
 
-    def get_balance(self, addr):
-        return self.handle_get('/balances/%s' % addr, None)
+    def get_balance(self, addr, tkn):
+        if tkn is not None:
+            return self.handle_get('/balances/%s/%s' % (addr, tkn), None)
+        else:
+            return self.handle_get('/balances/%s' % addr, None)
 
     def get_all_available_prosumers(self):
         res = requests.get('%s/player' % self.url)
         if res.status_code == http.HTTPStatus.OK:
             players = json.loads(res.text)['player']
             players_idxs = []
+            players_addrs = []
             for player in players:
                 if player['role'] == 'prosumer':
                     players_idxs.append(player['idx'])
+                    players_addrs.append(player['address'])
         else:
             self.logger.warning('No prosumers are available')
             players_idxs = None
-        return players_idxs
+            players_addrs = None
+        return players_idxs, players_addrs
 
     def get_idx(self, candidate):
         if self.cfg['pseudonymization']['enabled'] is True:
