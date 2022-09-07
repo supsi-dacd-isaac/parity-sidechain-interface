@@ -493,7 +493,7 @@ curl -X GET "http://localhost:9119/sla/comfort01"
 ### Creation:
 
 <pre>
-curl -X POST http://localhost:9119/createKpi -H 'Content-Type: application/json' \
+curl -X POST http://localhost:9119/createKpiFeatures -H 'Content-Type: application/json' \
             -d '{"idx":"temp_too_high", "idxSla":"comfort01", "rule": "gt", "limit": 24.5, "measureUnit": "°C", "penalty": 120, "players": ["parity_prosumer01", "parity_prosumer02"]}'
 </pre>
 
