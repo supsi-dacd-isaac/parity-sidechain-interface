@@ -78,12 +78,6 @@ def handler_class(pmsi_obj, cfg_obj, logger_obj):
 
 #  Main
 if __name__ == "__main__":
-    # Check if another instance is already running
-    try:
-        singleton = SingleInstance()
-    except:
-        sys.exit()
-
     # get input arguments
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-c', help='configuration file')

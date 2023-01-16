@@ -9,9 +9,8 @@ from classes.pseudonymizer import Pseudonymizer
 
 
 def store_dataset(cmd, pars, logger):
-    ret_data = u.send_post('%s/%s' % (url_prefix, cmd), pars, logger)
+    u.send_post('%s/%s' % (url_prefix, cmd), pars, logger)
     time.sleep(8)
-    u.send_get('%s/checkTx/%s' % (url_prefix, ret_data['tx_hash']), logger)
 
 
 # Main

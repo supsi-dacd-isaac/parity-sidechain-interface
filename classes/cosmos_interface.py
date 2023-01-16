@@ -31,7 +31,7 @@ class CosmosInterface:
         self.local_account = self.get_account_info()
 
     def get_account_info(self):
-        res = os.popen('%s keys list --output json' % self.full_path_app).read()
+        res = os.popen('%s keys list --output json --home %s' % (self.full_path_app, self.cfg['cosmos']['homeFolder'])).read()
         accounts = json.loads(res)
         return accounts[0]
 
@@ -69,8 +69,9 @@ class CosmosInterface:
             self.logger.error('Amount to transfer must be > 0')
 
     def do_token_transaction(self, dest, amount):
-        cmd_str = '%s tx bank send %s %s %i%s -y' % (self.full_path_app, self.local_account['address'],
-                                                     dest['address'], amount, self.cfg['cosmos']['tokenName'])
+        cmd_str = '%s tx bank send %s %s %i%s --home %s -y' % (self.full_path_app, self.local_account['address'],
+                                                               dest['address'], amount, self.cfg['cosmos']['tokenName'],
+                                                               self.cfg['cosmos']['homeFolder'])
 
         return self.perform_transaction_command(cmd_str)
 

@@ -49,7 +49,8 @@ class PMSidechainInterface(CosmosInterface):
                 cmd_str = '%s %s' % (cmd_str, real_cmd)
 
                 # Add name of the local account performing the transaction
-                cmd_str = '%s --from %s -y' % (cmd_str, self.get_idx(self.local_account['name']))
+                cmd_str = '%s --from %s --home %s -y' % (cmd_str, self.get_idx(self.local_account['name']),
+                                                         self.cfg['cosmos']['homeFolder'])
 
                 return self.perform_transaction_command(cmd_str)
             else:
