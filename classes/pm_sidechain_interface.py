@@ -294,7 +294,7 @@ class PMSidechainInterface(CosmosInterface):
         _, aggregator, lem_pars = self.get_lem_features(int(dt_lem_start.timestamp()), int(dt_lem_end.timestamp()))
 
         # Check if the last parameters are customized
-        if lem_pars[1] == '0' and lem_pars[2] == '0' and lem_pars[3] == '0' and lem_pars[4] == '0':
+        if lem_pars is None or (lem_pars[1] == '0' and lem_pars[2] == '0' and lem_pars[3] == '0' and lem_pars[4] == '0'):
             pars = self.get_market_default_parameters()
         else:
             if self.get_grid_state(int(dt_lem_start.timestamp())) == self.GRIDSTATE_GREEN:
@@ -310,19 +310,23 @@ class PMSidechainInterface(CosmosInterface):
 
         # Get aggregator forecasts
         forecasts_aggregator = self.get_forecast(aggregator['idx'])
+        if forecasts_aggregator is None:
+            self.logger.info('No forecast data saved by Aggregator node')
+
         forecasts_players = {}
         for player in players:
             forecasts_players[player['idx']] = self.get_forecast(player['idx'])
 
         # Calculate the total energies (cons + prod) matrices
-        ec_tot = np.zeros(len(forecasts_aggregator['values']))
-        ep_tot = np.zeros(len(forecasts_aggregator['values']))
+        ec_tot = np.zeros(96)
+        ep_tot = np.zeros(96)
         not_available_players = dict()
         for i in range(0, len(ec_tot)):
-            # Initialize with the aggregator forecasts
-            (ec, ep) = forecasts_aggregator['values'][i].split(',')
-            ec_tot[i] = float(ec)
-            ep_tot[i] = float(ep)
+            # Check if Aggregator node saved forecast data
+            if forecasts_aggregator is not None:
+                (ec, ep) = forecasts_aggregator['values'][i].split(',')
+                ec_tot[i] = float(ec)
+                ep_tot[i] = float(ep)
 
             # Cycle over the players
             for k_player in forecasts_players.keys():
@@ -337,8 +341,8 @@ class PMSidechainInterface(CosmosInterface):
             self.logger.warning('No forecast available for node %s' % k_not_available_player)
 
         # Calculate the prices matrices
-        prices_buy = np.zeros(len(forecasts_aggregator['values']))
-        prices_sell = np.zeros(len(forecasts_aggregator['values']))
+        prices_buy = np.zeros(96)
+        prices_sell = np.zeros(96)
         for i in range(0, len(ec_tot)):
             prices_buy[i], prices_sell[i] = PMSidechainInterface.calc_lem_energy_prices(ec_tot[i], ep_tot[i], pars)
 
