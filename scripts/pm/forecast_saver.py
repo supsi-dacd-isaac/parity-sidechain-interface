@@ -52,15 +52,14 @@ if __name__ == "__main__":
     dt = dt - datetime.timedelta(minutes=cfg['shiftBackMinutes']['forecastSaving'])
     ts = int(dt.timestamp())
 
-    # Check the grid state
     me = MarketEngine(cfg, logger)
-    power_imp = influxdb_interface.get_dataset('PImp',  dt_end_utc)
-    power_exp = influxdb_interface.get_dataset('PExp',  dt_end_utc)
+    persistence_power_imp = influxdb_interface.get_15m_past_measurements('PImp',  dt_end_utc)
+    persistence_power_exp = influxdb_interface.get_15m_past_measurements('PExp',  dt_end_utc)
 
     # Calculate the values
     values = []
     for i in range(0, cfg['forecast']['steps']):
-        values.append('%s,%s' % (int(power_imp), int(power_exp)))
+        values.append('%s,%s' % (int(persistence_power_imp[i][1]), int(persistence_power_exp[i][1])))
     params = {
                 'ts': ts,
                 'player': player_data['name'],

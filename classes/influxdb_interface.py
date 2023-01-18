@@ -62,3 +62,20 @@ class InfluxDBInterface():
         end_str_dt = datetime.datetime.strftime(end_dt, DT_FRMT)
         return self.get_single_value(signal, start_str_dt, end_str_dt)
 
+    def get_15m_past_measurements(self, signal, end_dt, hours_quarters_back=96):
+        minutes_back = 15*hours_quarters_back
+
+        DT_FRMT = '%Y-%m-%dT%H:%M:%SZ'
+        start_str_dt = datetime.datetime.strftime(end_dt-datetime.timedelta(minutes=minutes_back), DT_FRMT)
+        end_str_dt = datetime.datetime.strftime(end_dt, DT_FRMT)
+
+        query = 'SELECT mean("value") FROM data WHERE signal=\'%s\' AND time>=\'%s\' and time<\'%s\' ' \
+                'GROUP BY time(15m)' % (signal, start_str_dt, end_str_dt)
+        self.logger.info('Query: %s' % query)
+        try:
+            result = self.influx_client.query(query)
+            return result.raw['series'][0]['values']
+        except Exception as e:
+            self.logger.error('EXCEPTION: %s' % str(e))
+            return None
+
