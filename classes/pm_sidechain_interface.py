@@ -281,7 +281,7 @@ class PMSidechainInterface(CosmosInterface):
             p_buy = pb_bau
 
         if ep_tot > 0:
-            p_sell = (ep_tot * ps_bau - np.min([ec_tot, ep_tot])*(ps_bau-ps_p2p)) / ep_tot
+            p_sell = (ep_tot * ps_bau - np.min([ec_tot, ep_tot])*(ps_p2p-ps_bau)) / ep_tot
         else:
             p_sell = ps_bau
         return p_buy, p_sell
